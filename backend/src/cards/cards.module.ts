@@ -12,11 +12,13 @@ import { CardsController } from './cards.controller';
 import { AttachmentsController } from './attachments.controller';
 import { BoardGateway } from './board.gateway';
 import { EmailModule } from '../email/email.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Card, CardHistory, CardTag, Attachment, Board, BoardMember, User]),
     EmailModule,
+    NotificationsModule,
   ],
   controllers: [CardsController, AttachmentsController],
   providers: [CardsService, BoardGateway],

@@ -18,6 +18,7 @@ import { UpdateCardDto } from './dto/update-card.dto';
 import { AddTagDto } from './dto/add-tag.dto';
 import { EmailService } from '../email/email.service';
 import { BoardGateway } from './board.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CardsService {
@@ -38,6 +39,7 @@ export class CardsService {
     private readonly userRepository: Repository<User>,
     private readonly emailService: EmailService,
     private readonly boardGateway: BoardGateway,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // ── Create ──────────────────────────────────────────────────────────────
@@ -140,7 +142,7 @@ export class CardsService {
 
     this.boardGateway.notifyBoardUpdated(saved.boardId, 'card-updated');
 
-    // Dispatch emails asynchronously — failures must never block the API
+    // Dispatch emails + in-app notifications asynchronously
     if ('assignedToId' in dto && dto.assignedToId && dto.assignedToId !== prevAssignedToId) {
       const assignee = await this.userRepository.findOne({
         where: { id: dto.assignedToId },
@@ -153,6 +155,11 @@ export class CardsService {
           boardTitle: '',
           assigneeName: assignee.name,
           assigneeEmail: assignee.email,
+        });
+        void this.notificationsService.create(assignee.id, 'card_assigned', {
+          cardId: saved.id,
+          cardTitle: saved.title,
+          boardId: saved.boardId,
         });
       }
     }

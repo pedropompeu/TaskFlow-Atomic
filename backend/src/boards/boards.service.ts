@@ -12,6 +12,7 @@ import { BoardMember } from './entities/board-member.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class BoardsService {
@@ -22,6 +23,7 @@ export class BoardsService {
     private readonly memberRepository: Repository<BoardMember>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   create(dto: CreateBoardDto, ownerId: string): Promise<Board> {
@@ -119,6 +121,11 @@ export class BoardsService {
     await this.memberRepository.save(
       this.memberRepository.create({ boardId, userId: target.id, role: 'editor' }),
     );
+
+    void this.notificationsService.create(target.id, 'board_invite', {
+      boardId,
+      boardTitle: board.title,
+    });
 
     return { id: target.id, name: target.name, email: target.email, avatar: target.avatar, role: 'editor' };
   }
