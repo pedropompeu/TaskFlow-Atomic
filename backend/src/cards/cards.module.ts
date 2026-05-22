@@ -9,6 +9,7 @@ import { User } from '../users/entities/user.entity';
 import { CardsService } from './cards.service';
 import { CardsController } from './cards.controller';
 import { AttachmentsController } from './attachments.controller';
+import { BoardGateway } from './board.gateway';
 import { EmailModule } from '../email/email.module';
 
 @Module({
@@ -17,7 +18,7 @@ import { EmailModule } from '../email/email.module';
     EmailModule,
   ],
   controllers: [CardsController, AttachmentsController],
-  providers: [CardsService],
-  exports: [TypeOrmModule, CardsService],
+  providers: [CardsService, BoardGateway],
+  exports: [TypeOrmModule, CardsService, BoardGateway],
 })
 export class CardsModule {}
