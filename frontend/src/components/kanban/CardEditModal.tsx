@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { api } from '@/lib/api';
 import { cardsApi } from '@/lib/cards';
 import { useUsers } from '@/hooks/useUsers';
@@ -35,6 +36,13 @@ const ACTION_ICON: Record<string, string> = {
   tag_added: '🏷️',
   tag_removed: '🏷️',
   due_date_set: '📅',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  todo: 'A Fazer',
+  in_progress: 'Em Andamento',
+  in_review: 'Em Revisão',
+  done: 'Concluído',
 };
 
 export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
@@ -114,16 +122,16 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-gray-100">
+        <div className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-stone-100">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={handleTitleBlur}
-            className="flex-1 text-xl font-bold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 -mx-1"
+            className="flex-1 text-xl font-bold text-stone-900 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-orange-500 rounded px-1 -mx-1"
           />
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+            className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors shrink-0"
           >
             <X size={18} />
           </button>
@@ -136,30 +144,30 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
 
             {/* Description */}
             <section>
-              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Description
+              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
+                Descrição
               </h4>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add a more detailed description…"
+                placeholder="Adicione uma descrição detalhada…"
                 rows={4}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-y"
               />
               {descriptionDirty && (
                 <button
                   onClick={handleDescriptionSave}
                   disabled={updateCard.isPending}
-                  className="mt-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="mt-1.5 px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
                 >
-                  {updateCard.isPending ? 'Saving…' : 'Save'}
+                  {updateCard.isPending ? 'Salvando…' : 'Salvar'}
                 </button>
               )}
             </section>
 
             {/* Tags */}
             <section>
-              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2 flex items-center gap-1">
                 <Tag size={11} /> Tags
               </h4>
               <div className="flex flex-wrap gap-1.5 mb-2">
@@ -173,7 +181,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                     <button
                       onClick={() => removeTag.mutate(tag.id)}
                       className="hover:opacity-70 transition-opacity"
-                      aria-label={`Remove tag ${tag.name}`}
+                      aria-label={`Remover tag ${tag.name}`}
                     >
                       <X size={9} />
                     </button>
@@ -189,15 +197,15 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                       addTag.mutate({ name: newTagName.trim(), color: newTagColor });
                     }
                   }}
-                  placeholder="New tag…"
-                  className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Nova tag…"
+                  className="flex-1 px-2.5 py-1.5 text-xs border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
                 <input
                   type="color"
                   value={newTagColor}
                   onChange={(e) => setNewTagColor(e.target.value)}
-                  className="w-8 h-8 rounded border border-gray-200 cursor-pointer p-0.5"
-                  title="Tag color"
+                  className="w-8 h-8 rounded border border-stone-200 cursor-pointer p-0.5"
+                  title="Cor da tag"
                 />
                 <button
                   onClick={() =>
@@ -205,8 +213,8 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                     addTag.mutate({ name: newTagName.trim(), color: newTagColor })
                   }
                   disabled={!newTagName.trim() || addTag.isPending}
-                  className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
-                  aria-label="Add tag"
+                  className="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200 disabled:opacity-50 transition-colors"
+                  aria-label="Adicionar tag"
                 >
                   <Plus size={14} />
                 </button>
@@ -215,26 +223,26 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
 
             {/* Attachments */}
             <section>
-              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                <Paperclip size={11} /> Attachments
+              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <Paperclip size={11} /> Anexos
               </h4>
               <div className="space-y-1.5 mb-2">
                 {detail.attachments?.map((att) => (
                   <div
                     key={att.id}
-                    className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 group"
+                    className="flex items-center gap-2 bg-stone-50 rounded-lg px-3 py-2 group"
                   >
-                    <Paperclip size={13} className="text-gray-400 shrink-0" />
-                    <span className="flex-1 text-sm text-gray-700 truncate">
+                    <Paperclip size={13} className="text-stone-400 shrink-0" />
+                    <span className="flex-1 text-sm text-stone-700 truncate">
                       {att.originalName}
                     </span>
-                    <span className="text-xs text-gray-400 shrink-0">
+                    <span className="text-xs text-stone-400 shrink-0">
                       {(att.size / 1024).toFixed(0)} KB
                     </span>
                     <button
                       onClick={() => deleteAttachment.mutate(att.id)}
-                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all"
-                      aria-label="Delete attachment"
+                      className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-red-500 transition-all"
+                      aria-label="Excluir anexo"
                     >
                       <Trash2 size={13} />
                     </button>
@@ -254,10 +262,10 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadAttachment.isPending}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs border border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-600 disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs border border-dashed border-stone-300 rounded-lg text-stone-500 hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 transition-colors"
               >
                 <Upload size={13} />
-                {uploadAttachment.isPending ? 'Uploading…' : 'Attach a file'}
+                {uploadAttachment.isPending ? 'Enviando…' : 'Anexar arquivo'}
               </button>
             </section>
           </div>
@@ -265,17 +273,17 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
           {/* Right column — metadata */}
           <div className="w-52 shrink-0 space-y-5">
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                Assignee
+              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+                Responsável
               </label>
               <select
                 defaultValue={detail.assignedToId ?? ''}
                 onChange={(e) =>
                   updateCard.mutate({ assignedToId: e.target.value || undefined })
                 }
-                className="w-full px-2.5 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-2.5 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
               >
-                <option value="">Unassigned</option>
+                <option value="">Sem responsável</option>
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
@@ -283,15 +291,15 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                Priority
+              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+                Prioridade
               </label>
               <select
                 defaultValue={detail.priority}
                 onChange={(e) =>
                   updateCard.mutate({ priority: e.target.value as CardPriority })
                 }
-                className="w-full px-2.5 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-2.5 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
               >
                 {Object.entries(PRIORITY_META).map(([k, v]) => (
                   <option key={k} value={k}>{v.label}</option>
@@ -300,8 +308,8 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                Due date
+              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+                Prazo
               </label>
               <input
                 type="datetime-local"
@@ -317,12 +325,12 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                       : undefined,
                   })
                 }
-                className="w-full px-2.5 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2.5 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
                 Status
               </label>
               <span
@@ -331,13 +339,13 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                   detail.status === 'done'
                     ? 'bg-green-100 text-green-700'
                     : detail.status === 'in_review'
-                    ? 'bg-yellow-100 text-yellow-700'
+                    ? 'bg-amber-100 text-amber-700'
                     : detail.status === 'in_progress'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-600',
+                    ? 'bg-orange-100 text-orange-700'
+                    : 'bg-stone-100 text-stone-600',
                 )}
               >
-                {detail.status.replace('_', ' ')}
+                {STATUS_LABEL[detail.status] ?? detail.status}
               </span>
             </div>
           </div>
@@ -345,9 +353,9 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
 
         {/* History */}
         {(detail.history?.length ?? 0) > 0 && (
-          <div className="border-t border-gray-100 px-6 py-4">
-            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1">
-              <Clock size={11} /> Activity
+          <div className="border-t border-stone-100 px-6 py-4">
+            <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+              <Clock size={11} /> Atividade
             </h4>
             <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
               {detail.history?.map((entry) => (
@@ -356,13 +364,14 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                     {ACTION_ICON[entry.action] ?? '•'}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm text-gray-700 leading-snug">
+                    <p className="text-sm text-stone-700 leading-snug">
                       {entry.description}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-stone-400 mt-0.5">
                       {entry.user?.name} ·{' '}
                       {formatDistanceToNow(parseISO(entry.createdAt), {
                         addSuffix: true,
+                        locale: ptBR,
                       })}
                     </p>
                   </div>
