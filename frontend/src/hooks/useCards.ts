@@ -1,0 +1,61 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { cardsApi } from '@/lib/cards';
+import type { Card, CardStatus } from '@/types';
+
+export const cardsKey = (boardId: string) => ['cards', boardId] as const;
+
+export function useCards(boardId: string) {
+  return useQuery({
+    queryKey: cardsKey(boardId),
+    queryFn: () => cardsApi.listByBoard(boardId),
+    enabled: !!boardId,
+  });
+}
+
+export function useCreateCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<Card>) => cardsApi.create(boardId, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: cardsKey(boardId) }),
+  });
+}
+
+export function useUpdateCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string } & Partial<Card>) =>
+      cardsApi.update(id, data),
+    onMutate: async ({ id, status }) => {
+      if (!status) return;
+      await qc.cancelQueries({ queryKey: cardsKey(boardId) });
+      const prev = qc.getQueryData<Card[]>(cardsKey(boardId));
+      qc.setQueryData<Card[]>(cardsKey(boardId), (old) =>
+        old?.map((c) => (c.id === id ? { ...c, status: status as CardStatus } : c)) ?? [],
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx: any) => {
+      if (ctx?.prev) qc.setQueryData(cardsKey(boardId), ctx.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: cardsKey(boardId) }),
+  });
+}
+
+export function useDeleteCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => cardsApi.remove(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: cardsKey(boardId) });
+      const prev = qc.getQueryData<Card[]>(cardsKey(boardId));
+      qc.setQueryData<Card[]>(cardsKey(boardId), (old) =>
+        old?.filter((c) => c.id !== id) ?? [],
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx: any) => {
+      if (ctx?.prev) qc.setQueryData(cardsKey(boardId), ctx.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: cardsKey(boardId) }),
+  });
+}
