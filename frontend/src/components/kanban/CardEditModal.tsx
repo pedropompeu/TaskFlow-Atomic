@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Clock,
@@ -174,8 +175,12 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                 {detail.tags?.map((tag) => (
                   <span
                     key={tag.id}
-                    className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full text-white font-medium"
-                    style={{ backgroundColor: tag.color }}
+                    className="flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full tracking-wide transition-opacity hover:opacity-75"
+                    style={{
+                      backgroundColor: `${tag.color}1A`,
+                      color: tag.color,
+                      border: `1px solid ${tag.color}40`,
+                    }}
                   >
                     {tag.name}
                     <button

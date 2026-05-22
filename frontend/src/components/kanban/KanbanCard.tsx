@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import type { Card } from '@/types';
 import { PRIORITY_META } from '@/types';
 
+
 interface KanbanCardProps {
   card: Card;
   onDelete: (id: string) => void;
@@ -89,12 +90,16 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
 
       {/* Tags */}
       {card.tags && card.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {card.tags.map((tag) => (
             <span
               key={tag.id}
-              className="text-xs px-1.5 py-0.5 rounded-full text-white"
-              style={{ backgroundColor: tag.color }}
+              className="inline-flex items-center text-xs font-medium px-2.5 py-0.5 rounded-full tracking-wide"
+              style={{
+                backgroundColor: `${tag.color}1A`,
+                color: tag.color,
+                border: `1px solid ${tag.color}40`,
+              }}
             >
               {tag.name}
             </span>
