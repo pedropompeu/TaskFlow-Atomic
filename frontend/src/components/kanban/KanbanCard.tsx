@@ -29,14 +29,20 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
 
   const priority = PRIORITY_META[card.priority];
 
+  const isDone = card.status === 'done';
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group bg-white rounded-lg border border-stone-200 p-3 shadow-sm cursor-grab active:cursor-grabbing',
-        'hover:border-orange-200 hover:shadow-md hover:-translate-y-0.5 transition-all',
-        isDragging && 'opacity-40 scale-95',
+        'group bg-white rounded-lg border p-3 shadow-sm cursor-grab active:cursor-grabbing',
+        'transition-all duration-200',
+        'animate-card-enter',
+        isDone
+          ? 'border-atomic-green/40 shadow-[0_0_12px_rgba(67,172,141,0.12)]'
+          : 'border-atomic-gray-300/40 hover:border-atomic-orange/40 hover:shadow-[0_4px_16px_rgba(247,142,47,0.12)] hover:-translate-y-0.5',
+        isDragging && 'opacity-50 scale-[1.03] rotate-1 shadow-xl border-atomic-orange/50 z-50',
       )}
       {...attributes}
       {...listeners}
@@ -52,7 +58,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
           {priority.label}
         </span>
         <button
-          className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-red-500 transition-opacity shrink-0"
+          className="opacity-0 group-hover:opacity-100 text-atomic-gray-500 hover:text-red-500 transition-opacity shrink-0"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
@@ -66,7 +72,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
 
       {/* Title — click opens modal */}
       <p
-        className="text-sm font-medium text-stone-800 mb-2 leading-snug cursor-pointer hover:text-orange-600 transition-colors"
+        className="text-sm font-medium text-atomic-dark mb-2 leading-snug cursor-pointer hover:text-atomic-orange transition-colors"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
@@ -97,7 +103,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
           <span
             className={cn(
               'flex items-center gap-1 text-xs',
-              isOverdue ? 'text-red-600 font-medium' : 'text-stone-400',
+              isOverdue ? 'text-red-600 font-medium' : 'text-atomic-gray-500',
             )}
           >
             <Calendar size={11} />
@@ -105,7 +111,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
           </span>
         )}
         {card.assignedTo && (
-          <span className="flex items-center gap-1 text-xs text-stone-400 ml-auto">
+          <span className="flex items-center gap-1 text-xs text-atomic-gray-500 ml-auto">
             <UserIcon size={11} />
             {card.assignedTo.name.split(' ')[0]}
           </span>

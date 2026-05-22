@@ -37,7 +37,7 @@ export default function DashboardPage() {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-36 bg-stone-200 rounded-xl" />
+          <div key={i} className="h-36 bg-atomic-gray-300/40 rounded-xl" />
         ))}
       </div>
     );
@@ -46,10 +46,10 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-stone-900">Meus Quadros</h2>
+        <h2 className="text-xl font-bold text-atomic-dark">Meus Quadros</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-atomic-orange text-white text-sm font-medium rounded-lg btn-glow-orange"
         >
           <Plus size={16} />
           Novo Quadro
@@ -59,15 +59,15 @@ export default function DashboardPage() {
       {showForm && (
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mb-6 bg-white border border-stone-200 rounded-xl p-4 space-y-3 shadow-sm"
+          className="mb-6 bg-white border border-atomic-gray-300/40 rounded-xl p-4 space-y-3 shadow-sm"
         >
-          <h3 className="text-sm font-semibold text-stone-700">Novo quadro</h3>
+          <h3 className="text-sm font-semibold text-atomic-dark/70">Novo quadro</h3>
           <div>
             <input
               autoFocus
               {...register('title')}
               placeholder="Título do quadro"
-              className="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 text-sm border border-atomic-gray-300/60 rounded-lg input-glow"
             />
             {errors.title && (
               <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>
@@ -76,20 +76,20 @@ export default function DashboardPage() {
           <input
             {...register('description')}
             placeholder="Descrição (opcional)"
-            className="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full px-3 py-2 text-sm border border-atomic-gray-300/60 rounded-lg input-glow"
           />
           <div className="flex gap-2">
             <button
               type="submit"
               disabled={createBoard.isPending}
-              className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-atomic-orange text-white text-sm font-medium rounded-lg hover:bg-atomic-orange/90 disabled:opacity-50 transition-colors"
             >
               {createBoard.isPending ? 'Criando…' : 'Criar'}
             </button>
             <button
               type="button"
               onClick={() => { reset(); setShowForm(false); }}
-              className="px-4 py-2 text-sm text-stone-600 hover:text-stone-800 transition-colors"
+              className="px-4 py-2 text-sm text-atomic-gray-600 hover:text-stone-800 transition-colors"
             >
               Cancelar
             </button>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
       )}
 
       {boards.length === 0 ? (
-        <div className="text-center py-20 text-stone-400">
+        <div className="text-center py-20 text-atomic-gray-500/70">
           <LayoutDashboard size={40} className="mx-auto mb-3 opacity-40" />
           <p className="text-sm">Nenhum quadro ainda. Crie o seu primeiro!</p>
         </div>
@@ -107,15 +107,15 @@ export default function DashboardPage() {
           {boards.map((board) => (
             <div
               key={board.id}
-              className="group relative bg-white border border-stone-200 rounded-xl p-5 hover:border-orange-300 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
+              className="group relative bg-white/70 backdrop-blur-sm border border-atomic-gray-300/40 rounded-xl p-5 hover:border-atomic-orange/40 hover:shadow-[0_4px_20px_rgba(247,142,47,0.12)] hover:-translate-y-1 transition-all duration-200 cursor-pointer"
               onClick={() => router.push(`/dashboard/${board.id}`)}
             >
               <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-stone-900 group-hover:text-orange-600 transition-colors">
+                <h3 className="font-semibold text-atomic-dark group-hover:text-atomic-orange transition-colors">
                   {board.title}
                 </h3>
                 <button
-                  className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-red-500 transition-all"
+                  className="opacity-0 group-hover:opacity-100 text-atomic-gray-500/70 hover:text-red-500 transition-all"
                   onClick={(e) => {
                     e.stopPropagation();
                     deleteBoard.mutate(board.id);
@@ -126,9 +126,9 @@ export default function DashboardPage() {
                 </button>
               </div>
               {board.description && (
-                <p className="text-sm text-stone-500 mb-3 line-clamp-2">{board.description}</p>
+                <p className="text-sm text-atomic-gray-500 mb-3 line-clamp-2">{board.description}</p>
               )}
-              <p className="text-xs text-stone-400 mt-auto">
+              <p className="text-xs text-atomic-gray-500/70 mt-auto">
                 Criado{' '}
                 {formatDistanceToNow(parseISO(board.createdAt), {
                   addSuffix: true,

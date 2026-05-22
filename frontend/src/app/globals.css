@@ -12,18 +12,67 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 48%;
     --radius: 0.5rem;
+
+    /* ── PulseFlow Motion Tokens ── */
+    --motion-fast:   150ms ease-out;
+    --motion-normal: 250ms ease;
+    --motion-slow:   400ms ease-in-out;
+    --motion-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  * {
-    border-color: hsl(var(--border));
-  }
+  * { border-color: hsl(var(--border)); }
 
   body {
-    background-color: #FBFBFB;
+    background-color: #E8F0F4;
     color: #1D1D1B;
   }
 }
 
+/* ─────────────────────────────────────────────
+   AURORA — blobs de fundo do dashboard
+───────────────────────────────────────────── */
+@keyframes aurora-1 {
+  0%, 100% { transform: translate(0,    0)    scale(1);    }
+  33%       { transform: translate(70px, -50px) scale(1.12); }
+  66%       { transform: translate(-40px, 60px) scale(0.88); }
+}
+@keyframes aurora-2 {
+  0%, 100% { transform: translate(0,     0)    scale(1);    }
+  33%       { transform: translate(-60px, 40px)  scale(0.93); }
+  66%       { transform: translate(50px, -70px)  scale(1.07); }
+}
+@keyframes aurora-3 {
+  0%, 100% { transform: translate(0,    0)    scale(1);    }
+  33%       { transform: translate(40px, 60px)  scale(1.1);  }
+  66%       { transform: translate(-70px,-30px) scale(0.9);  }
+}
+
+/* ─────────────────────────────────────────────
+   CARDS — entrada e celebração
+───────────────────────────────────────────── */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+@keyframes card-celebrate {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.04); }
+  60%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+/* ─────────────────────────────────────────────
+   COLUNA VAZIA — respira levemente
+───────────────────────────────────────────── */
+@keyframes column-breathe {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.75; }
+}
+
+/* ─────────────────────────────────────────────
+   BLOB LEGADO (home page)
+───────────────────────────────────────────── */
 @keyframes blob {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33%       { transform: translate(30px, -40px) scale(1.1); }
@@ -35,18 +84,55 @@
   50%      { background-position: 100% 50%; }
 }
 
+/* ─────────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────────── */
 @layer utilities {
+  /* Aurora */
+  .animate-aurora-1 { animation: aurora-1 18s ease-in-out infinite; }
+  .animate-aurora-2 { animation: aurora-2 24s ease-in-out infinite; }
+  .animate-aurora-3 { animation: aurora-3 30s ease-in-out infinite; }
+
+  /* Cards */
+  .animate-card-enter     { animation: card-enter     200ms ease-out forwards; }
+  .animate-card-celebrate { animation: card-celebrate 400ms var(--motion-spring) forwards; }
+
+  /* Coluna */
+  .animate-column-breathe { animation: column-breathe 4s ease-in-out infinite; }
+
+  /* Legado */
+  .animate-blob         { animation: blob 9s ease-in-out infinite; }
+  .animation-delay-2000 { animation-delay: 2s; }
+  .animation-delay-4000 { animation-delay: 4s; }
+  .animate-gradient-bg  { background-size: 400% 400%; animation: gradient-shift 14s ease infinite; }
+
+  /* Glow buttons */
+  .btn-glow-orange {
+    transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+  }
+  .btn-glow-orange:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(247, 142, 47, 0.35);
+  }
+  .btn-glow-orange:active { transform: scale(0.98); }
+
+  /* Input glow focus */
+  .input-glow:focus {
+    outline: none;
+    border-color: #F78E2F;
+    box-shadow: 0 0 0 3px rgba(247, 142, 47, 0.15);
+  }
+}
+
+/* Acessibilidade — respeita preferência do usuário */
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora-1,
+  .animate-aurora-2,
+  .animate-aurora-3,
+  .animate-card-enter,
+  .animate-card-celebrate,
+  .animate-column-breathe,
   .animate-blob {
-    animation: blob 9s ease-in-out infinite;
-  }
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-  .animation-delay-4000 {
-    animation-delay: 4s;
-  }
-  .animate-gradient-bg {
-    background-size: 400% 400%;
-    animation: gradient-shift 14s ease infinite;
+    animation: none;
   }
 }

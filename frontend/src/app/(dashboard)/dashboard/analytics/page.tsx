@@ -25,14 +25,14 @@ import { boardsApi } from '@/lib/boards';
 import { COLUMN_CONFIG } from '@/types';
 
 const STATUS_COLORS: Record<string, string> = {
-  todo: '#A8A29E',
-  in_progress: '#F97316',
-  in_review: '#D97706',
-  done: '#10B981',
+  todo: '#999999',
+  in_progress: '#F78E2F',
+  in_review: '#A559FD',
+  done: '#43AC8D',
 };
 
 const ASSIGNEE_COLORS = [
-  '#EA580C', '#D97706', '#16A34A', '#0891B2', '#7C3AED', '#DB2777',
+  '#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32', '#999999',
 ];
 
 const STATUS_LABEL: Record<string, string> = {
@@ -44,11 +44,11 @@ const STATUS_LABEL: Record<string, string> = {
 
 function StatCard({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-stone-100 p-4 flex items-center gap-4 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
-      <div className="p-2.5 bg-orange-50 rounded-lg text-orange-600">{icon}</div>
+    <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-atomic-gray-300/20 p-4 flex items-center gap-4 shadow-sm hover:-translate-y-1 hover:shadow-[0_4px_20px_rgba(247,142,47,0.10)] transition-all duration-200">
+      <div className="p-2.5 bg-atomic-orange/10 rounded-lg text-atomic-orange">{icon}</div>
       <div>
-        <p className="text-2xl font-bold text-stone-900">{value}</p>
-        <p className="text-xs text-stone-500 mt-0.5">{label}</p>
+        <p className="text-2xl font-bold text-atomic-dark">{value}</p>
+        <p className="text-xs text-atomic-gray-500 mt-0.5">{label}</p>
       </div>
     </div>
   );
@@ -56,8 +56,8 @@ function StatCard({ label, value, icon }: { label: string; value: number; icon: 
 
 function ChartShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-stone-100 p-5 shadow-sm">
-      <h3 className="text-sm font-semibold text-stone-700 mb-4">{title}</h3>
+    <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-atomic-gray-300/20 p-5 shadow-sm">
+      <h3 className="text-sm font-semibold text-atomic-dark/70 mb-4">{title}</h3>
       {children}
     </div>
   );
@@ -98,17 +98,17 @@ export default function AnalyticsPage() {
       {/* Header + Filters */}
       <div className="flex flex-wrap items-end gap-4 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-stone-900">Análises</h2>
-          <p className="text-sm text-stone-500 mt-0.5">Visão geral de desempenho dos cards</p>
+          <h2 className="text-xl font-bold text-atomic-dark">Análises</h2>
+          <p className="text-sm text-atomic-gray-500 mt-0.5">Visão geral de desempenho dos cards</p>
         </div>
 
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-stone-500">Quadro</label>
+            <label className="text-xs font-medium text-atomic-gray-500">Quadro</label>
             <select
               value={boardId}
               onChange={(e) => setBoardId(e.target.value)}
-              className="px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+              className="px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-atomic-orange bg-white"
             >
               <option value="">Todos os quadros</option>
               {boards.map((b) => (
@@ -118,22 +118,22 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-stone-500">De</label>
+            <label className="text-xs font-medium text-atomic-gray-500">De</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-atomic-orange"
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-stone-500">Até</label>
+            <label className="text-xs font-medium text-atomic-gray-500">Até</label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-atomic-orange"
             />
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-pulse">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 bg-stone-100 rounded-xl" />
+            <div key={i} className="h-20 bg-atomic-ice rounded-xl" />
           ))}
         </div>
       ) : (
@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
             {/* Cards by Status — Pie */}
             <ChartShell title="Cards por Status">
               {cardsByStatus.length === 0 ? (
-                <p className="text-sm text-stone-400 text-center py-10">Sem dados no período</p>
+                <p className="text-sm text-atomic-gray-500/70 text-center py-10">Sem dados no período</p>
               ) : (
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
@@ -194,7 +194,7 @@ export default function AnalyticsPage() {
                     <Tooltip formatter={(val) => [`${val} cards`, '']} />
                     <Legend
                       formatter={(value) => (
-                        <span className="text-xs text-stone-600">{value}</span>
+                        <span className="text-xs text-atomic-gray-600">{value}</span>
                       )}
                     />
                   </PieChart>
@@ -205,7 +205,7 @@ export default function AnalyticsPage() {
             {/* Cards by Assignee — Bar */}
             <ChartShell title="Cards por Responsável">
               {(data?.cardsByAssignee ?? []).length === 0 ? (
-                <p className="text-sm text-stone-400 text-center py-10">Sem dados no período</p>
+                <p className="text-sm text-atomic-gray-500/70 text-center py-10">Sem dados no período</p>
               ) : (
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart
@@ -236,7 +236,7 @@ export default function AnalyticsPage() {
           {/* Completions over time — Line */}
           <ChartShell title="Conclusões ao longo do tempo">
             {(data?.completionsOverTime ?? []).length === 0 ? (
-              <p className="text-sm text-stone-400 text-center py-10">
+              <p className="text-sm text-atomic-gray-500/70 text-center py-10">
                 Nenhum card concluído no período selecionado
               </p>
             ) : (
@@ -263,9 +263,9 @@ export default function AnalyticsPage() {
                   <Line
                     type="monotone"
                     dataKey="count"
-                    stroke="#10B981"
+                    stroke="#43AC8D"
                     strokeWidth={2}
-                    dot={{ r: 3, fill: '#10B981' }}
+                    dot={{ r: 3, fill: '#43AC8D' }}
                     activeDot={{ r: 5 }}
                   />
                 </LineChart>
@@ -274,8 +274,8 @@ export default function AnalyticsPage() {
           </ChartShell>
 
           {/* Overdue cards */}
-          <div className="bg-white rounded-xl border border-stone-100 p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-stone-700 mb-4 flex items-center gap-2">
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-atomic-gray-300/20 p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-atomic-dark/70 mb-4 flex items-center gap-2">
               <AlertTriangle size={14} className="text-red-500" />
               Cards em Atraso
               {overdueCount > 0 && (
@@ -286,34 +286,34 @@ export default function AnalyticsPage() {
             </h3>
 
             {overdueCount === 0 ? (
-              <p className="text-sm text-stone-400 text-center py-6">
+              <p className="text-sm text-atomic-gray-500/70 text-center py-6">
                 Nenhum card em atraso. Ótimo trabalho!
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-xs text-stone-400 uppercase tracking-wider border-b border-stone-100">
+                    <tr className="text-left text-xs text-atomic-gray-500/70 uppercase tracking-wider border-b border-stone-100">
                       <th className="pb-2 font-medium">Título</th>
                       <th className="pb-2 font-medium">Status</th>
                       <th className="pb-2 font-medium">Responsável</th>
                       <th className="pb-2 font-medium">Prazo</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-50">
+                  <tbody className="divide-y divide-atomic-ice">
                     {(data?.overdueCards ?? []).map((card) => {
                       const col = COLUMN_CONFIG.find((c) => c.status === card.status);
                       return (
-                        <tr key={card.id} className="hover:bg-stone-50 transition-colors">
+                        <tr key={card.id} className="hover:bg-atomic-ice/60 transition-colors">
                           <td className="py-2.5 pr-4 font-medium text-stone-800 truncate max-w-xs">
                             {card.title}
                           </td>
                           <td className="py-2.5 pr-4">
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-atomic-ice text-atomic-gray-600">
                               {col?.title ?? card.status}
                             </span>
                           </td>
-                          <td className="py-2.5 pr-4 text-stone-600">
+                          <td className="py-2.5 pr-4 text-atomic-gray-600">
                             {card.assignedTo?.name ?? '—'}
                           </td>
                           <td className="py-2.5 text-red-600 font-medium">
