@@ -1,19 +1,14 @@
 import Link from 'next/link';
 import { LayoutGrid, BarChart2, BellRing } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
-import { VideoBackground } from '@/components/layout/VideoBackground';
 
 export default function Home() {
   return (
     <>
       <Header />
 
-      <main className="min-h-screen relative overflow-hidden flex items-center bg-atomic-ice">
+      <main className="min-h-screen relative z-10 overflow-hidden flex items-center">
 
-        <VideoBackground />
-
-        {/* ── Gradiente esq → dir ── */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-atomic-dark/80 via-atomic-dark/25 to-transparent" />
 
         {/* ── Conteúdo centralizado ── */}
         <div className="relative z-10 w-full max-w-xl px-6 mx-auto text-center">

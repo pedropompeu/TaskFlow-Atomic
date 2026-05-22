@@ -7,8 +7,6 @@ import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { Header } from '@/components/layout/Header';
-import { VideoBackground } from '@/components/layout/VideoBackground';
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -31,15 +29,9 @@ export default function LoginPage() {
   });
 
   return (
-    <>
-      <Header />
+    <div className="min-h-screen relative z-10 overflow-hidden flex items-center">
 
-      <div className="min-h-screen relative overflow-hidden flex items-center bg-atomic-ice">
-
-        <VideoBackground />
-
-        {/* ── Gradiente esq → dir: escurece o lado do card, revela o vídeo à direita ── */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-atomic-dark/80 via-atomic-dark/25 to-transparent" />                                                                           
+                                                                           
 
         {/* ── Card glassmorphism à esquerda (centralizado no mobile) ── */}
         <div className="relative z-10 w-full max-w-[468px] px-4 mx-auto">
@@ -114,7 +106,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-      </div>
-    </>
+    </div>
   );
 }

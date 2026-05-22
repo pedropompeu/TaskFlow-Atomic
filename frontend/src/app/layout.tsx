@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Roboto, Cabin } from 'next/font/google';
 import { Providers } from '@/lib/providers';
+import { PersistentVideoBackground } from '@/components/layout/PersistentVideoBackground';
 import './globals.css';
 
 const roboto = Roboto({
@@ -25,7 +26,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${roboto.variable} ${cabin.variable}`}>
-      <body className="font-sans bg-atomic-light text-atomic-dark antialiased">
+      <body className="font-sans bg-atomic-ice text-atomic-dark antialiased">
+        <PersistentVideoBackground />
         <Providers>{children}</Providers>
       </body>
     </html>
