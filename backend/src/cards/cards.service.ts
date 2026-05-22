@@ -16,6 +16,7 @@ import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { AddTagDto } from './dto/add-tag.dto';
 import { EmailService } from '../email/email.service';
+import { BoardGateway } from './board.gateway';
 
 @Injectable()
 export class CardsService {
@@ -33,6 +34,7 @@ export class CardsService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly emailService: EmailService,
+    private readonly boardGateway: BoardGateway,
   ) {}
 
   // ── Create ──────────────────────────────────────────────────────────────
@@ -55,6 +57,7 @@ export class CardsService {
       }),
     );
 
+    this.boardGateway.notifyBoardUpdated(boardId, 'card-created');
     return saved;
   }
 
@@ -132,6 +135,8 @@ export class CardsService {
       );
     }
 
+    this.boardGateway.notifyBoardUpdated(saved.boardId, 'card-updated');
+
     // Dispatch emails asynchronously — failures must never block the API
     if ('assignedToId' in dto && dto.assignedToId && dto.assignedToId !== prevAssignedToId) {
       const assignee = await this.userRepository.findOne({
@@ -180,7 +185,9 @@ export class CardsService {
     if (card.board.ownerId !== userId && card.createdById !== userId) {
       throw new ForbiddenException();
     }
+    const boardId = card.boardId;
     await this.cardRepository.remove(card);
+    this.boardGateway.notifyBoardUpdated(boardId, 'card-deleted');
     return { message: 'Card deleted' };
   }
 
@@ -192,6 +199,7 @@ export class CardsService {
         await manager.update(Card, { id: orderedIds[i], boardId }, { position: i });
       }
     });
+    this.boardGateway.notifyBoardUpdated(boardId, 'card-reordered');
   }
 
   // ── Tags ──────────────────────────────────────────────────────────────────
