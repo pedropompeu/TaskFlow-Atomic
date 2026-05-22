@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import {
   Clock,
   Paperclip,
@@ -11,6 +12,7 @@ import {
   Trash2,
   Upload,
   X,
+  Check,
 } from 'lucide-react';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -53,6 +55,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const [description, setDescription] = useState(card.description ?? '');
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('#6B7280');
+  const [descSaveState, setDescSaveState] = useState<'idle' | 'saved' | 'error'>('idle');
 
   const { data: detail = card } = useQuery({
     queryKey: ['card', card.id],
@@ -107,18 +110,39 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
 
   function handleDescriptionSave() {
     if (description !== (detail.description ?? '')) {
-      updateCard.mutate({ description });
+      setDescSaveState('idle');
+      updateCard.mutate(
+        { description },
+        {
+          onSuccess: () => {
+            setDescSaveState('saved');
+            setTimeout(() => setDescSaveState('idle'), 2000);
+          },
+          onError: () => {
+            setDescSaveState('error');
+            setTimeout(() => setDescSaveState('idle'), 2000);
+          },
+        },
+      );
     }
   }
 
   const descriptionDirty = description !== (detail.description ?? '');
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
       className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 pt-14 overflow-y-auto"
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 32, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.97 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 28 }}
         className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mb-8"
         onClick={(e) => e.stopPropagation()}
       >
@@ -155,13 +179,29 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                 rows={4}
                 className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-y"
               />
-              {descriptionDirty && (
+              {(descriptionDirty || descSaveState !== 'idle') && (
                 <button
                   onClick={handleDescriptionSave}
-                  disabled={updateCard.isPending}
-                  className="mt-1.5 px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                  disabled={updateCard.isPending || descSaveState === 'saved'}
+                  className={cn(
+                    'mt-1.5 px-3 py-1.5 text-white text-xs font-medium rounded-lg transition-all flex items-center gap-1.5',
+                    descSaveState === 'error'
+                      ? 'bg-red-500 animate-shake'
+                      : descSaveState === 'saved'
+                      ? 'bg-green-600'
+                      : 'bg-orange-600 hover:bg-orange-700',
+                    updateCard.isPending && 'opacity-60',
+                  )}
                 >
-                  {updateCard.isPending ? 'Salvando…' : 'Salvar'}
+                  {updateCard.isPending ? (
+                    'Salvando…'
+                  ) : descSaveState === 'saved' ? (
+                    <><Check size={12} /> Salvo</>
+                  ) : descSaveState === 'error' ? (
+                    'Erro ao salvar'
+                  ) : (
+                    'Salvar'
+                  )}
                 </button>
               )}
             </section>
@@ -385,7 +425,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

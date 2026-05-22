@@ -84,6 +84,14 @@
   50%      { background-position: 100% 50%; }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+
 /* ─────────────────────────────────────────────
    UTILITIES
 ───────────────────────────────────────────── */
@@ -99,6 +107,9 @@
 
   /* Coluna */
   .animate-column-breathe { animation: column-breathe 4s ease-in-out infinite; }
+
+  /* Shake — feedback de erro */
+  .animate-shake { animation: shake 400ms ease-in-out; }
 
   /* Legado */
   .animate-blob         { animation: blob 9s ease-in-out infinite; }
@@ -132,6 +143,7 @@
   .animate-card-enter,
   .animate-card-celebrate,
   .animate-column-breathe,
+  .animate-shake,
   .animate-blob {
     animation: none;
   }

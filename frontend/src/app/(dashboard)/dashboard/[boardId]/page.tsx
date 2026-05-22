@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Search, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { CardEditModal } from '@/components/kanban/CardEditModal';
@@ -13,6 +14,7 @@ export default function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>();
   const router = useRouter();
   const [editingCard, setEditingCard] = useState<Card | null>(null);
+  const [filterText, setFilterText] = useState('');
 
   const { data: board, isLoading } = useQuery({
     queryKey: ['board', boardId],
@@ -44,18 +46,37 @@ export default function BoardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
         <button
           onClick={() => router.push('/dashboard')}
-          className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+          className="p-1.5 text-atomic-gray-500 hover:text-atomic-dark hover:bg-atomic-ice rounded-lg transition-colors"
           aria-label="Voltar aos quadros"
         >
           <ArrowLeft size={18} />
         </button>
-        <div>
-          <h2 className="text-xl font-bold text-stone-900">{board.title}</h2>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl font-bold text-atomic-dark">{board.title}</h2>
           {board.description && (
-            <p className="text-sm text-stone-500 mt-0.5">{board.description}</p>
+            <p className="text-sm text-atomic-gray-500 mt-0.5">{board.description}</p>
+          )}
+        </div>
+        {/* Busca */}
+        <div className="relative">
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-atomic-gray-500 pointer-events-none" />
+          <input
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            placeholder="Filtrar cards…"
+            className="pl-8 pr-7 py-1.5 text-sm border border-atomic-gray-300/50 rounded-lg bg-white/70 focus:outline-none focus:ring-2 focus:ring-atomic-orange/40 w-44 transition-all focus:w-56"
+          />
+          {filterText && (
+            <button
+              onClick={() => setFilterText('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-atomic-gray-500 hover:text-atomic-dark"
+              aria-label="Limpar filtro"
+            >
+              <X size={13} />
+            </button>
           )}
         </div>
       </div>
@@ -64,15 +85,19 @@ export default function BoardPage() {
       <KanbanBoard
         boardId={boardId}
         onEditCard={(card) => setEditingCard(card)}
+        filterText={filterText}
       />
 
-      {editingCard && (
-        <CardEditModal
-          card={editingCard}
-          boardId={boardId}
-          onClose={() => setEditingCard(null)}
-        />
-      )}
+      <AnimatePresence>
+        {editingCard && (
+          <CardEditModal
+            key={editingCard.id}
+            card={editingCard}
+            boardId={boardId}
+            onClose={() => setEditingCard(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
