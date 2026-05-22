@@ -36,7 +36,7 @@ export function KanbanColumn({
   const isEmpty = cards.length === 0;
 
   return (
-    <div className="flex flex-col w-72 shrink-0">
+    <div className="flex flex-col w-72 shrink-0 snap-start">
 
       {/* ── Header ── */}
       <div className={cn('bg-white/80 backdrop-blur-sm rounded-t-xl border border-b-0 border-atomic-gray-300/40 border-t-4 px-3 pt-2.5 pb-2', accent)}>

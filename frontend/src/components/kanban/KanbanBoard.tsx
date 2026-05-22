@@ -5,6 +5,7 @@ import {
   DragEndEvent,
   DragOverlay,
   PointerSensor,
+  TouchSensor,
   closestCorners,
   useSensor,
   useSensors,
@@ -32,6 +33,7 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '' }: KanbanBoar
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
   );
 
   const needle = filterText.toLowerCase();
@@ -88,7 +90,7 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '' }: KanbanBoar
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-6 pt-2">
+      <div className="flex gap-4 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory md:snap-none scroll-smooth -mx-2 px-2"  style={{ WebkitOverflowScrolling: 'touch' }}>
         {COLUMN_CONFIG.map((col) => (
           <KanbanColumn
             key={col.status}

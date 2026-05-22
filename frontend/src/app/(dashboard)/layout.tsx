@@ -19,8 +19,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* ── Header — pílula escura (mesmo padrão do Header público) ── */}
-      <header className="fixed top-6 left-0 right-0 z-50 px-4">
-        <div className="mx-auto max-w-[960px] bg-[#1D1D1B]/50 backdrop-blur-md rounded-2xl px-8 py-4 flex items-center justify-between shadow-lg">
+      <header className="fixed top-3 sm:top-6 left-0 right-0 z-50 px-3 sm:px-4">
+        <div className="mx-auto max-w-[960px] bg-[#1D1D1B]/50 backdrop-blur-md rounded-2xl px-4 sm:px-8 py-3 sm:py-4 flex items-center justify-between shadow-lg gap-2">
 
           {/* Logo + TaskFlow */}
           <div className="flex items-center gap-3 shrink-0">
@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Nav */}
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-3 sm:gap-6">
             <Link
               href="/dashboard"
               className={`font-heading text-sm transition-colors ${
@@ -50,7 +50,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : 'text-white/70 hover:text-white'
               }`}
             >
-              Quadro
+              <span className="hidden xs:inline">Quadro</span>
+              <span className="xs:hidden">Q</span>
             </Link>
             <Link
               href="/dashboard/analytics"
@@ -60,7 +61,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : 'text-white/70 hover:text-white'
               }`}
             >
-              Análises
+              <span className="hidden xs:inline">Análises</span>
+              <span className="xs:hidden">A</span>
             </Link>
             <button
               type="button"
@@ -82,7 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       {/* Conteúdo com espaço para o header fixo */}
-      <main className="max-w-screen-xl mx-auto px-6 pt-28 pb-6">{children}</main>
+      <main className="max-w-screen-xl mx-auto px-3 sm:px-6 pt-24 sm:pt-28 pb-6">{children}</main>
 
     </div>
   );
