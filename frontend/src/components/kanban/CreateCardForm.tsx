@@ -25,10 +25,10 @@ export function CreateCardForm({ onSubmit, isLoading }: CreateCardFormProps) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg px-2 py-2 transition-colors mt-1"
+        className="w-full flex items-center gap-1.5 text-sm text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg px-2 py-2 transition-colors mt-1"
       >
         <Plus size={15} />
-        Add card
+        Adicionar card
       </button>
     );
   }
@@ -46,22 +46,22 @@ export function CreateCardForm({ onSubmit, isLoading }: CreateCardFormProps) {
           }
           if (e.key === 'Escape') setOpen(false);
         }}
-        placeholder="Card title…"
+        placeholder="Título do card…"
         rows={2}
-        className="w-full px-3 py-2 text-sm border border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        className="w-full px-3 py-2 text-sm border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
       />
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={isLoading || !title.trim()}
-          className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="px-3 py-1.5 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
         >
-          {isLoading ? 'Adding…' : 'Add card'}
+          {isLoading ? 'Adicionando…' : 'Adicionar'}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-1.5 text-stone-400 hover:text-stone-600 transition-colors"
         >
           <X size={16} />
         </button>

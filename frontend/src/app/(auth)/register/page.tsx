@@ -9,9 +9,9 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 
 const schema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -30,29 +30,29 @@ export default function RegisterPage() {
   });
 
   const errorMessage =
-    (error as any)?.response?.data?.message ?? 'Something went wrong. Please try again.';
+    (error as any)?.response?.data?.message ?? 'Algo deu errado. Tente novamente.';
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Task<span className="text-blue-600">Flow</span>
+        <h1 className="text-2xl font-bold text-stone-900">
+          Task<span className="text-orange-600">Flow</span>
         </h1>
-        <p className="text-gray-500 mt-1 text-sm">Create your account</p>
+        <p className="text-stone-500 mt-1 text-sm">Crie sua conta</p>
       </div>
 
       <form onSubmit={handleSubmit((d) => mutate(d))} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            Full name
+          <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1">
+            Nome completo
           </label>
           <input
             id="name"
             type="text"
             autoComplete="name"
             {...register('name')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Jane Doe"
+            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            placeholder="João Silva"
           />
           {errors.name && (
             <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
@@ -60,16 +60,16 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email
+          <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-1">
+            E-mail
           </label>
           <input
             id="email"
             type="email"
             autoComplete="email"
             {...register('email')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="you@example.com"
+            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            placeholder="voce@exemplo.com"
           />
           {errors.email && (
             <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
@@ -77,16 +77,16 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password
+          <label htmlFor="password" className="block text-sm font-medium text-stone-700 mb-1">
+            Senha
           </label>
           <input
             id="password"
             type="password"
             autoComplete="new-password"
             {...register('password')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Min. 8 characters"
+            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            placeholder="Mínimo 8 caracteres"
           />
           {errors.password && (
             <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
@@ -102,16 +102,16 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full py-2.5 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors mt-2"
+          className="w-full py-2.5 px-4 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 transition-all mt-2"
         >
-          {isPending ? 'Creating account…' : 'Create account'}
+          {isPending ? 'Criando conta…' : 'Criar conta'}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-500">
-        Already have an account?{' '}
-        <Link href="/login" className="text-blue-600 hover:underline font-medium">
-          Sign in
+      <p className="mt-6 text-center text-sm text-stone-500">
+        Já tem uma conta?{' '}
+        <Link href="/login" className="text-orange-600 hover:underline font-medium">
+          Entrar
         </Link>
       </p>
     </div>

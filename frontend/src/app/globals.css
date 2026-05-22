@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --border: 214.3 31.8% 91.4%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --background: 40 100% 99%;
+    --foreground: 20 14% 10%;
+    --border: 20 9% 89%;
+    --primary: 21 90% 48%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 30 25% 96%;
+    --muted-foreground: 25 15% 45%;
     --radius: 0.5rem;
   }
 
@@ -21,5 +21,32 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+  }
+}
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(30px, -40px) scale(1.1); }
+  66%       { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+@layer utilities {
+  .animate-blob {
+    animation: blob 9s ease-in-out infinite;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+  .animate-gradient-bg {
+    background-size: 400% 400%;
+    animation: gradient-shift 14s ease infinite;
   }
 }

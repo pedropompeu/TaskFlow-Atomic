@@ -1,25 +1,27 @@
+'use client';
+
 import Link from 'next/link';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 h-14 flex items-center">
+    <div className="min-h-screen bg-[#FFFCF7]">
+      <nav className="bg-white border-b border-stone-200 px-6 h-14 flex items-center">
         <div className="flex items-center justify-between w-full max-w-screen-xl mx-auto">
-          <Link href="/dashboard" className="text-lg font-bold text-gray-900">
-            Task<span className="text-blue-600">Flow</span>
+          <Link href="/dashboard" className="text-lg font-bold text-stone-900">
+            Task<span className="text-orange-600">Flow</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link
               href="/dashboard"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-sm text-stone-600 hover:text-stone-900 transition-colors"
             >
-              Board
+              Quadro
             </Link>
             <Link
               href="/dashboard/analytics"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-sm text-stone-600 hover:text-stone-900 transition-colors"
             >
-              Analytics
+              Análises
             </Link>
             <form action="/api/logout" method="POST">
               <button
@@ -31,9 +33,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   });
                   window.location.href = '/login';
                 }}
-                className="text-sm text-gray-500 hover:text-red-600 transition-colors"
+                className="text-sm text-stone-500 hover:text-red-600 transition-colors"
               >
-                Sign out
+                Sair
               </button>
             </form>
           </div>

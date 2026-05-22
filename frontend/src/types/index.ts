@@ -66,15 +66,15 @@ export interface Board {
 }
 
 export const COLUMN_CONFIG: { status: CardStatus; title: string; accent: string }[] = [
-  { status: 'todo',        title: 'A Fazer',       accent: 'border-t-gray-400' },
-  { status: 'in_progress', title: 'Em Andamento',  accent: 'border-t-blue-500' },
-  { status: 'in_review',   title: 'Em Revisão',    accent: 'border-t-yellow-500' },
+  { status: 'todo',        title: 'A Fazer',       accent: 'border-t-stone-400' },
+  { status: 'in_progress', title: 'Em Andamento',  accent: 'border-t-orange-500' },
+  { status: 'in_review',   title: 'Em Revisão',    accent: 'border-t-amber-500' },
   { status: 'done',        title: 'Concluído',     accent: 'border-t-green-500' },
 ];
 
 export const PRIORITY_META: Record<CardPriority, { label: string; classes: string }> = {
-  low:    { label: 'Low',    classes: 'bg-gray-100 text-gray-600' },
-  medium: { label: 'Medium', classes: 'bg-blue-100 text-blue-700' },
-  high:   { label: 'High',   classes: 'bg-orange-100 text-orange-700' },
-  urgent: { label: 'Urgent', classes: 'bg-red-100 text-red-700' },
+  low:    { label: 'Baixa',   classes: 'bg-stone-100 text-stone-600' },
+  medium: { label: 'Média',   classes: 'bg-amber-100 text-amber-700' },
+  high:   { label: 'Alta',    classes: 'bg-orange-100 text-orange-700' },
+  urgent: { label: 'Urgente', classes: 'bg-red-100 text-red-700' },
 };

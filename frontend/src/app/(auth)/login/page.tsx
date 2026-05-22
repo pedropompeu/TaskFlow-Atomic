@@ -9,8 +9,8 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 
 const schema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(1, 'Senha obrigatória'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -31,24 +31,24 @@ export default function LoginPage() {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Task<span className="text-blue-600">Flow</span>
+        <h1 className="text-2xl font-bold text-stone-900">
+          Task<span className="text-orange-600">Flow</span>
         </h1>
-        <p className="text-gray-500 mt-1 text-sm">Sign in to your account</p>
+        <p className="text-stone-500 mt-1 text-sm">Entre na sua conta</p>
       </div>
 
       <form onSubmit={handleSubmit((d) => mutate(d))} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email
+          <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-1">
+            E-mail
           </label>
           <input
             id="email"
             type="email"
             autoComplete="email"
             {...register('email')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="you@example.com"
+            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            placeholder="voce@exemplo.com"
           />
           {errors.email && (
             <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
@@ -56,15 +56,15 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password
+          <label htmlFor="password" className="block text-sm font-medium text-stone-700 mb-1">
+            Senha
           </label>
           <input
             id="password"
             type="password"
             autoComplete="current-password"
             {...register('password')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             placeholder="••••••••"
           />
           {errors.password && (
@@ -74,23 +74,23 @@ export default function LoginPage() {
 
         {isError && (
           <p className="text-sm text-red-600 text-center bg-red-50 rounded-lg py-2">
-            Invalid email or password. Please try again.
+            E-mail ou senha inválidos. Tente novamente.
           </p>
         )}
 
         <button
           type="submit"
           disabled={isPending}
-          className="w-full py-2.5 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors mt-2"
+          className="w-full py-2.5 px-4 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 transition-all mt-2"
         >
-          {isPending ? 'Signing in…' : 'Sign in'}
+          {isPending ? 'Entrando…' : 'Entrar'}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-500">
-        Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-blue-600 hover:underline font-medium">
-          Create one
+      <p className="mt-6 text-center text-sm text-stone-500">
+        Não tem uma conta?{' '}
+        <Link href="/register" className="text-orange-600 hover:underline font-medium">
+          Criar conta
         </Link>
       </p>
     </div>

@@ -35,13 +35,13 @@ export function KanbanColumn({
       {/* Column header */}
       <div
         className={cn(
-          'bg-white rounded-t-xl border border-b-0 border-gray-200 border-t-4 px-3 py-2.5',
+          'bg-white rounded-t-xl border border-b-0 border-stone-200 border-t-4 px-3 py-2.5',
           accent,
         )}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
-          <span className="text-xs bg-gray-100 text-gray-500 font-medium px-1.5 py-0.5 rounded-full">
+          <h3 className="text-sm font-semibold text-stone-700">{title}</h3>
+          <span className="text-xs bg-stone-100 text-stone-500 font-medium px-1.5 py-0.5 rounded-full">
             {cards.length}
           </span>
         </div>
@@ -51,8 +51,8 @@ export function KanbanColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          'flex-1 min-h-[120px] bg-gray-50 rounded-b-xl border border-gray-200 p-2 space-y-2 transition-colors',
-          isOver && 'bg-blue-50 border-blue-300',
+          'flex-1 min-h-[120px] bg-stone-50 rounded-b-xl border border-stone-200 p-2 space-y-2 transition-colors',
+          isOver && 'bg-orange-50 border-orange-300',
         )}
       >
         <SortableContext
