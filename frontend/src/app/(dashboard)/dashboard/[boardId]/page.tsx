@@ -8,13 +8,17 @@ import { useQuery } from '@tanstack/react-query';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { CardEditModal } from '@/components/kanban/CardEditModal';
 import { boardsApi } from '@/lib/boards';
+import { useBoardSocket } from '@/hooks/useBoardSocket';
 import type { Card } from '@/types';
+
+const AVATAR_COLORS = ['#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32'];
 
 export default function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>();
   const router = useRouter();
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [filterText, setFilterText] = useState('');
+  const { onlineUsers } = useBoardSocket(boardId);
 
   const { data: board, isLoading } = useQuery({
     queryKey: ['board', boardId],
@@ -60,6 +64,33 @@ export default function BoardPage() {
             <p className="text-sm text-atomic-gray-500 mt-0.5">{board.description}</p>
           )}
         </div>
+        {/* Presença — usuários online no board */}
+        {onlineUsers.length > 0 && (
+          <div className="flex items-center -space-x-2">
+            {onlineUsers.slice(0, 5).map((u, i) => (
+              <div
+                key={u.userId}
+                title={u.userName}
+                style={{
+                  backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
+                  zIndex: 10 - i,
+                }}
+                className="relative w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold text-white shadow-sm"
+              >
+                {u.userName.charAt(0).toUpperCase()}
+              </div>
+            ))}
+            {onlineUsers.length > 5 && (
+              <div
+                style={{ zIndex: 5 }}
+                className="relative w-7 h-7 rounded-full border-2 border-white bg-atomic-gray-500 flex items-center justify-center text-[11px] font-bold text-white shadow-sm"
+              >
+                +{onlineUsers.length - 5}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Busca */}
         <div className="relative">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-atomic-gray-500 pointer-events-none" />
