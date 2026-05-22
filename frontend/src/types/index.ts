@@ -79,6 +79,16 @@ export interface BoardMembers {
   members: BoardMemberEntry[];
 }
 
+export type NotificationType = 'board_invite' | 'card_assigned';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  payload: Record<string, any>;
+  read: boolean;
+  createdAt: string;
+}
+
 export const COLUMN_CONFIG: { status: CardStatus; title: string; accent: string }[] = [
   { status: 'todo',        title: 'A Fazer',       accent: 'border-t-atomic-gray-500' },
   { status: 'in_progress', title: 'Em Andamento',  accent: 'border-t-atomic-orange' },

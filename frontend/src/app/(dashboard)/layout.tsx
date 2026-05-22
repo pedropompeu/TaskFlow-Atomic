@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { LogOut } from 'lucide-react';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -40,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           </div>
 
-          {/* Nav */}
+          {/* Nav + Notificações */}
           <nav className="flex items-center gap-3 sm:gap-6">
             <Link
               href="/dashboard"
@@ -64,6 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="hidden xs:inline">Análises</span>
               <span className="xs:hidden">A</span>
             </Link>
+            <NotificationBell />
             <button
               type="button"
               onClick={async () => {
