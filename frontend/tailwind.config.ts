@@ -20,6 +20,25 @@ const config: Config = {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
         },
+        atomic: {
+          purple: '#A559FD',
+          orange: '#F78E2F',
+          yellow: '#FDCC32',
+          blue: '#1D84B7',
+          green: '#43AC8D',
+          dark: '#1D1D1B',
+          light: '#FBFBFB',
+          ice: '#E8F0F4',
+          gray: {
+            300: '#D9D9D9',
+            500: '#999999',
+            600: '#7A7A7A',
+          },
+        },
+      },
+      fontFamily: {
+        sans: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-cabin)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',

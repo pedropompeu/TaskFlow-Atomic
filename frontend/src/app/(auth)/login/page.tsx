@@ -7,6 +7,8 @@ import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { Header } from '@/components/layout/Header';
+import { VideoBackground } from '@/components/layout/VideoBackground';
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -29,70 +31,90 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8">
-      <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-stone-900">
-          Task<span className="text-orange-600">Flow</span>
-        </h1>
-        <p className="text-stone-500 mt-1 text-sm">Entre na sua conta</p>
+    <>
+      <Header />
+
+      <div className="min-h-screen relative overflow-hidden flex items-center bg-atomic-ice">
+
+        <VideoBackground />
+
+        {/* ── Gradiente esq → dir: escurece o lado do card, revela o vídeo à direita ── */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-atomic-dark/80 via-atomic-dark/25 to-transparent" />                                                                           
+
+        {/* ── Card glassmorphism à esquerda (centralizado no mobile) ── */}
+        <div className="relative z-10 w-full max-w-[468px] px-4 mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-10">
+
+            <div className="mb-8 text-center">
+              <h1 className="font-heading text-2xl font-bold text-white drop-shadow">
+                Task<span className="text-atomic-orange">Flow</span>
+              </h1>
+              <p className="font-sans text-white/70 mt-1 text-sm">
+                Entre na sua conta
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit((d) => mutate(d))} className="space-y-5" noValidate>
+              <div>
+                <label htmlFor="email" className="block font-sans text-sm font-medium text-white/90 mb-1.5">
+                  E-mail
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  {...register('email')}
+                  className="w-full px-4 py-2.5 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-atomic-orange/60 focus:border-atomic-orange/50 transition-all"
+                  placeholder="voce@exemplo.com"
+                />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-300">{errors.email.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block font-sans text-sm font-medium text-white/90 mb-1.5">
+                  Senha
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  {...register('password')}
+                  className="w-full px-4 py-2.5 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-atomic-orange/60 focus:border-atomic-orange/50 transition-all"
+                  placeholder="••••••••"
+                />
+                {errors.password && (
+                  <p className="mt-1 text-xs text-red-300">{errors.password.message}</p>
+                )}
+              </div>
+
+              {isError && (
+                <p className="text-sm text-red-300 text-center bg-red-500/20 border border-red-400/30 rounded-lg py-2 px-3">
+                  E-mail ou senha inválidos. Tente novamente.
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full py-3 px-4 bg-atomic-orange text-white font-heading font-bold text-sm rounded-lg hover:bg-atomic-orange/90 active:scale-[0.99] disabled:opacity-60 transition-all mt-2"
+              >
+                {isPending ? 'Entrando…' : 'Entrar'}
+              </button>
+            </form>
+
+            <p className="mt-6 text-center font-sans text-sm text-white/60">
+              Não tem uma conta?{' '}
+              <Link href="/register" className="text-white hover:text-atomic-orange font-medium transition-colors">
+                Criar conta
+              </Link>
+            </p>
+
+          </div>
+        </div>
+
       </div>
-
-      <form onSubmit={handleSubmit((d) => mutate(d))} className="space-y-4" noValidate>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-1">
-            E-mail
-          </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            {...register('email')}
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            placeholder="voce@exemplo.com"
-          />
-          {errors.email && (
-            <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-stone-700 mb-1">
-            Senha
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            {...register('password')}
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            placeholder="••••••••"
-          />
-          {errors.password && (
-            <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
-          )}
-        </div>
-
-        {isError && (
-          <p className="text-sm text-red-600 text-center bg-red-50 rounded-lg py-2">
-            E-mail ou senha inválidos. Tente novamente.
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full py-2.5 px-4 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 transition-all mt-2"
-        >
-          {isPending ? 'Entrando…' : 'Entrar'}
-        </button>
-      </form>
-
-      <p className="mt-6 text-center text-sm text-stone-500">
-        Não tem uma conta?{' '}
-        <Link href="/register" className="text-orange-600 hover:underline font-medium">
-          Criar conta
-        </Link>
-      </p>
-    </div>
+    </>
   );
 }

@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 40 100% 99%;
-    --foreground: 20 14% 10%;
-    --border: 20 9% 89%;
-    --primary: 21 90% 48%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 11%;
+    --border: 0 0% 85%;
+    --primary: 271 97% 67%;
     --primary-foreground: 0 0% 100%;
-    --muted: 30 25% 96%;
-    --muted-foreground: 25 15% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 48%;
     --radius: 0.5rem;
   }
 
@@ -19,8 +19,8 @@
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: #FBFBFB;
+    color: #1D1D1B;
   }
 }
 
