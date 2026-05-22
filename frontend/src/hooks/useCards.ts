@@ -41,6 +41,28 @@ export function useUpdateCard(boardId: string) {
   });
 }
 
+export function useReorderCards(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderedIds: string[]) => cardsApi.reorder(boardId, orderedIds),
+    onMutate: async (orderedIds) => {
+      await qc.cancelQueries({ queryKey: cardsKey(boardId) });
+      const prev = qc.getQueryData<Card[]>(cardsKey(boardId));
+      qc.setQueryData<Card[]>(cardsKey(boardId), (old) =>
+        old?.map((c) => {
+          const idx = orderedIds.indexOf(c.id);
+          return idx !== -1 ? { ...c, position: idx } : c;
+        }) ?? [],
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx: any) => {
+      if (ctx?.prev) qc.setQueryData(cardsKey(boardId), ctx.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: cardsKey(boardId) }),
+  });
+}
+
 export function useDeleteCard(boardId: string) {
   const qc = useQueryClient();
   return useMutation({

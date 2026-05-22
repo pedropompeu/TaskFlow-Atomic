@@ -184,6 +184,16 @@ export class CardsService {
     return { message: 'Card deleted' };
   }
 
+  // ── Reorder ───────────────────────────────────────────────────────────────
+
+  async reorder(boardId: string, orderedIds: string[]): Promise<void> {
+    await this.cardRepository.manager.transaction(async (manager) => {
+      for (let i = 0; i < orderedIds.length; i++) {
+        await manager.update(Card, { id: orderedIds[i], boardId }, { position: i });
+      }
+    });
+  }
+
   // ── Tags ──────────────────────────────────────────────────────────────────
 
   async addTag(cardId: string, dto: AddTagDto, userId: string): Promise<CardTag> {

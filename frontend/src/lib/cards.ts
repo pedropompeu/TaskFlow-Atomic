@@ -10,6 +10,8 @@ export const cardsApi = {
   update: (id: string, data: Partial<Card>) =>
     api.patch<Card>(`/cards/${id}`, data).then((r) => r.data),
   remove: (id: string) => api.delete(`/cards/${id}`),
+  reorder: (boardId: string, orderedIds: string[]) =>
+    api.patch(`/boards/${boardId}/cards/reorder`, { orderedIds }),
   uploadAttachment: (id: string, file: File) => {
     const form = new FormData();
     form.append('file', file);

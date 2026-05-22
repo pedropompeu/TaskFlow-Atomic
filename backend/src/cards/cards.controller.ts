@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
+import { ReorderCardsDto } from './dto/reorder-cards.dto';
 import { AddTagDto } from './dto/add-tag.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -49,6 +50,16 @@ export class CardsController {
   @ApiOperation({ summary: 'Get a card with full details, history and attachments' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.cardsService.findOne(id);
+  }
+
+  @Patch('boards/:boardId/cards/reorder')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Bulk-update card positions within a board' })
+  reorder(
+    @Param('boardId', ParseUUIDPipe) boardId: string,
+    @Body() dto: ReorderCardsDto,
+  ) {
+    return this.cardsService.reorder(boardId, dto.orderedIds);
   }
 
   @Patch('cards/:id')

@@ -9,31 +9,39 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import { useState } from 'react';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
-import { useCards, useCreateCard, useUpdateCard, useDeleteCard } from '@/hooks/useCards';
+import { useCards, useCreateCard, useUpdateCard, useDeleteCard, useReorderCards } from '@/hooks/useCards';
 import { COLUMN_CONFIG, type Card, type CardStatus } from '@/types';
 
 interface KanbanBoardProps {
   boardId: string;
   onEditCard: (card: Card) => void;
+  filterText?: string;
 }
 
-export function KanbanBoard({ boardId, onEditCard }: KanbanBoardProps) {
+export function KanbanBoard({ boardId, onEditCard, filterText = '' }: KanbanBoardProps) {
   const { data: cards = [] } = useCards(boardId);
   const createCard = useCreateCard(boardId);
   const updateCard = useUpdateCard(boardId);
   const deleteCard = useDeleteCard(boardId);
+  const reorderCards = useReorderCards(boardId);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
+  const needle = filterText.toLowerCase();
+  const visibleCards = needle
+    ? cards.filter((c) => c.title.toLowerCase().includes(needle))
+    : cards;
+
   const byStatus = COLUMN_CONFIG.reduce(
     (acc, col) => {
-      acc[col.status] = cards
+      acc[col.status] = visibleCards
         .filter((c) => c.status === col.status)
         .sort((a, b) => a.position - b.position);
       return acc;
@@ -48,20 +56,29 @@ export function KanbanBoard({ boardId, onEditCard }: KanbanBoardProps) {
 
   function handleDragEnd({ active, over }: DragEndEvent) {
     setActiveCard(null);
-    if (!over) return;
+    if (!over || active.id === over.id) return;
 
     const draggedCard = cards.find((c) => c.id === active.id);
     if (!draggedCard) return;
 
-    // over.id is either a column status or a card id
     const isColumnTarget = COLUMN_CONFIG.some((col) => col.status === over.id);
-    const targetStatus: CardStatus | undefined = isColumnTarget
+    const targetStatus: CardStatus = isColumnTarget
       ? (over.id as CardStatus)
-      : cards.find((c) => c.id === over.id)?.status;
+      : (cards.find((c) => c.id === over.id)?.status ?? draggedCard.status);
 
-    if (!targetStatus || targetStatus === draggedCard.status) return;
+    if (targetStatus !== draggedCard.status) {
+      updateCard.mutate({ id: draggedCard.id, status: targetStatus });
+      return;
+    }
 
-    updateCard.mutate({ id: draggedCard.id, status: targetStatus });
+    // Same-column: reorder vertically
+    const columnCards = byStatus[draggedCard.status];
+    const oldIndex = columnCards.findIndex((c) => c.id === active.id);
+    const newIndex = columnCards.findIndex((c) => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+
+    const reordered = arrayMove(columnCards, oldIndex, newIndex);
+    reorderCards.mutate(reordered.map((c) => c.id));
   }
 
   return (
