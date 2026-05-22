@@ -11,9 +11,11 @@ import { CardHistory, HistoryAction } from './entities/card-history.entity';
 import { CardTag } from './entities/card-tag.entity';
 import { Attachment } from './entities/attachment.entity';
 import { Board } from '../boards/entities/board.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { AddTagDto } from './dto/add-tag.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class CardsService {
@@ -28,6 +30,9 @@ export class CardsService {
     private readonly attachmentRepository: Repository<Attachment>,
     @InjectRepository(Board)
     private readonly boardRepository: Repository<Board>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly emailService: EmailService,
   ) {}
 
   // ── Create ──────────────────────────────────────────────────────────────
@@ -125,6 +130,40 @@ export class CardsService {
       await this.historyRepository.save(
         entries.map((e) => this.historyRepository.create(e)),
       );
+    }
+
+    // Dispatch emails asynchronously — failures must never block the API
+    if ('assignedToId' in dto && dto.assignedToId && dto.assignedToId !== prevAssignedToId) {
+      const assignee = await this.userRepository.findOne({
+        where: { id: dto.assignedToId },
+        select: ['id', 'name', 'email'],
+      });
+      if (assignee) {
+        void this.emailService.enqueue({
+          type: 'card_assigned',
+          cardTitle: saved.title,
+          boardTitle: '',
+          assigneeName: assignee.name,
+          assigneeEmail: assignee.email,
+        });
+      }
+    }
+
+    if (dto.status !== undefined && dto.status !== prevStatus && saved.assignedToId) {
+      const assignee = await this.userRepository.findOne({
+        where: { id: saved.assignedToId },
+        select: ['id', 'name', 'email'],
+      });
+      if (assignee) {
+        void this.emailService.enqueue({
+          type: 'status_changed',
+          cardTitle: saved.title,
+          fromStatus: prevStatus,
+          toStatus: dto.status,
+          assigneeName: assignee.name,
+          assigneeEmail: assignee.email,
+        });
+      }
     }
 
     return saved;

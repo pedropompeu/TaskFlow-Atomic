@@ -96,6 +96,9 @@ export class Card {
   @OneToMany(() => Attachment, (attachment) => attachment.card, { cascade: true })
   attachments: Attachment[];
 
+  @Column({ name: 'deadline_reminder_sent_at', type: 'timestamp', nullable: true })
+  deadlineReminderSentAt: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
