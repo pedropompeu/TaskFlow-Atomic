@@ -2,6 +2,7 @@
 
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { KanbanCard } from './KanbanCard';
 import { CreateCardForm } from './CreateCardForm';
@@ -72,22 +73,32 @@ export function KanbanColumn({
         )}
       >
         <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-          {cards.map((card) => (
-            <KanbanCard
-              key={card.id}
-              card={card}
-              onDelete={onDeleteCard}
-              onEdit={onEditCard}
-            />
-          ))}
+          <AnimatePresence initial={false}>
+            {cards.map((card) => (
+              <KanbanCard
+                key={card.id}
+                card={card}
+                onDelete={onDeleteCard}
+                onEdit={onEditCard}
+              />
+            ))}
+          </AnimatePresence>
         </SortableContext>
 
         {/* Estado vazio — respira suavemente */}
-        {isEmpty && !isOver && (
-          <div className="flex items-center justify-center h-16 animate-column-breathe">
-            <span className="text-xs text-atomic-gray-500/60 select-none">solte aqui</span>
-          </div>
-        )}
+        <AnimatePresence>
+          {isEmpty && !isOver && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center justify-center h-16 animate-column-breathe"
+            >
+              <span className="text-xs text-atomic-gray-500/60 select-none">solte aqui</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <CreateCardForm onSubmit={onCreateCard} isLoading={isCreating} />
       </div>
