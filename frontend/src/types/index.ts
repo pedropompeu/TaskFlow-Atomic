@@ -65,6 +65,20 @@ export interface Board {
   updatedAt: string;
 }
 
+export interface BoardMemberEntry {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  role: 'owner' | 'editor';
+  memberId?: string;
+}
+
+export interface BoardMembers {
+  owner: BoardMemberEntry;
+  members: BoardMemberEntry[];
+}
+
 export const COLUMN_CONFIG: { status: CardStatus; title: string; accent: string }[] = [
   { status: 'todo',        title: 'A Fazer',       accent: 'border-t-atomic-gray-500' },
   { status: 'in_progress', title: 'Em Andamento',  accent: 'border-t-atomic-orange' },

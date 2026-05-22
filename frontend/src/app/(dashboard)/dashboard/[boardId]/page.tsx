@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, X } from 'lucide-react';
+import { ArrowLeft, Search, X, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { CardEditModal } from '@/components/kanban/CardEditModal';
+import { BoardMembersPanel } from '@/components/kanban/BoardMembersPanel';
 import { boardsApi } from '@/lib/boards';
 import { useBoardSocket } from '@/hooks/useBoardSocket';
+import { useMe } from '@/hooks/useMe';
 import type { Card } from '@/types';
 
 const AVATAR_COLORS = ['#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32'];
@@ -18,13 +20,17 @@ export default function BoardPage() {
   const router = useRouter();
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [filterText, setFilterText] = useState('');
+  const [showMembers, setShowMembers] = useState(false);
   const { onlineUsers } = useBoardSocket(boardId);
+  const { data: me } = useMe();
 
   const { data: board, isLoading } = useQuery({
     queryKey: ['board', boardId],
     queryFn: () => boardsApi.get(boardId),
     enabled: !!boardId,
   });
+
+  const isOwner = !!me && !!board && me.id === board.ownerId;
 
   if (isLoading) {
     return (
@@ -64,6 +70,7 @@ export default function BoardPage() {
             <p className="text-sm text-atomic-gray-500 mt-0.5">{board.description}</p>
           )}
         </div>
+
         {/* Presença — usuários online no board */}
         {onlineUsers.length > 0 && (
           <div className="flex items-center -space-x-2">
@@ -71,10 +78,7 @@ export default function BoardPage() {
               <div
                 key={u.userId}
                 title={u.userName}
-                style={{
-                  backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
-                  zIndex: 10 - i,
-                }}
+                style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length], zIndex: 10 - i }}
                 className="relative w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold text-white shadow-sm"
               >
                 {u.userName.charAt(0).toUpperCase()}
@@ -90,6 +94,15 @@ export default function BoardPage() {
             )}
           </div>
         )}
+
+        {/* Botão Membros */}
+        <button
+          onClick={() => setShowMembers(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-atomic-gray-600 hover:text-atomic-dark border border-atomic-gray-300/50 hover:border-atomic-gray-300 bg-white/70 hover:bg-white rounded-lg transition-all"
+        >
+          <Users size={14} />
+          <span className="hidden xs:inline">Membros</span>
+        </button>
 
         {/* Busca */}
         <div className="relative">
@@ -126,6 +139,15 @@ export default function BoardPage() {
             card={editingCard}
             boardId={boardId}
             onClose={() => setEditingCard(null)}
+          />
+        )}
+        {showMembers && me && (
+          <BoardMembersPanel
+            key="members-panel"
+            boardId={boardId}
+            currentUserId={me.id}
+            isOwner={isOwner}
+            onClose={() => setShowMembers(false)}
           />
         )}
       </AnimatePresence>

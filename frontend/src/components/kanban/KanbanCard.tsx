@@ -33,7 +33,6 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
   return (
     <motion.div
       ref={setNodeRef}
-      style={dndStyle}
       layout
       initial={{ opacity: 0, y: 10, scale: 0.96 }}
       animate={{
