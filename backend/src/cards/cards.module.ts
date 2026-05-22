@@ -7,10 +7,13 @@ import { Attachment } from './entities/attachment.entity';
 import { Board } from '../boards/entities/board.entity';
 import { CardsService } from './cards.service';
 import { CardsController } from './cards.controller';
+import { AttachmentsController } from './attachments.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Card, CardHistory, CardTag, Attachment, Board])],
-  controllers: [CardsController],
+  imports: [
+    TypeOrmModule.forFeature([Card, CardHistory, CardTag, Attachment, Board]),
+  ],
+  controllers: [CardsController, AttachmentsController],
   providers: [CardsService],
   exports: [TypeOrmModule, CardsService],
 })

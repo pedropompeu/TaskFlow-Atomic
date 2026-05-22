@@ -5,11 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { existsSync, unlinkSync } from 'fs';
 import { Card } from './entities/card.entity';
 import { CardHistory, HistoryAction } from './entities/card-history.entity';
+import { CardTag } from './entities/card-tag.entity';
+import { Attachment } from './entities/attachment.entity';
 import { Board } from '../boards/entities/board.entity';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
+import { AddTagDto } from './dto/add-tag.dto';
 
 @Injectable()
 export class CardsService {
@@ -18,9 +22,15 @@ export class CardsService {
     private readonly cardRepository: Repository<Card>,
     @InjectRepository(CardHistory)
     private readonly historyRepository: Repository<CardHistory>,
+    @InjectRepository(CardTag)
+    private readonly tagRepository: Repository<CardTag>,
+    @InjectRepository(Attachment)
+    private readonly attachmentRepository: Repository<Attachment>,
     @InjectRepository(Board)
     private readonly boardRepository: Repository<Board>,
   ) {}
+
+  // ── Create ──────────────────────────────────────────────────────────────
 
   async create(boardId: string, dto: CreateCardDto, userId: string): Promise<Card> {
     const board = await this.boardRepository.findOne({ where: { id: boardId } });
@@ -42,6 +52,8 @@ export class CardsService {
 
     return saved;
   }
+
+  // ── Read ─────────────────────────────────────────────────────────────────
 
   findByBoard(boardId: string): Promise<Card[]> {
     return this.cardRepository.find({
@@ -69,6 +81,8 @@ export class CardsService {
     return card;
   }
 
+  // ── Update ────────────────────────────────────────────────────────────────
+
   async update(id: string, dto: UpdateCardDto, userId: string): Promise<Card> {
     const card = await this.cardRepository.findOne({ where: { id } });
     if (!card) throw new NotFoundException('Card not found');
@@ -79,12 +93,11 @@ export class CardsService {
     Object.assign(card, dto);
     const saved = await this.cardRepository.save(card);
 
-    const historyEntries: Partial<CardHistory>[] = [];
+    const entries: Partial<CardHistory>[] = [];
 
     if (dto.status !== undefined && dto.status !== prevStatus) {
-      historyEntries.push({
-        cardId: id,
-        userId,
+      entries.push({
+        cardId: id, userId,
         action: HistoryAction.MOVED,
         fromStatus: prevStatus,
         toStatus: dto.status,
@@ -93,31 +106,31 @@ export class CardsService {
     }
 
     if ('assignedToId' in dto && dto.assignedToId !== prevAssignedToId) {
-      historyEntries.push({
-        cardId: id,
-        userId,
+      entries.push({
+        cardId: id, userId,
         action: dto.assignedToId ? HistoryAction.ASSIGNED : HistoryAction.UNASSIGNED,
         description: dto.assignedToId ? 'Card assigned' : 'Card unassigned',
       });
     }
 
     if ('dueDate' in dto && dto.dueDate !== undefined) {
-      historyEntries.push({
-        cardId: id,
-        userId,
+      entries.push({
+        cardId: id, userId,
         action: HistoryAction.DUE_DATE_SET,
         description: `Due date set to ${dto.dueDate}`,
       });
     }
 
-    if (historyEntries.length > 0) {
+    if (entries.length) {
       await this.historyRepository.save(
-        historyEntries.map((e) => this.historyRepository.create(e)),
+        entries.map((e) => this.historyRepository.create(e)),
       );
     }
 
     return saved;
   }
+
+  // ── Delete ────────────────────────────────────────────────────────────────
 
   async remove(id: string, userId: string): Promise<{ message: string }> {
     const card = await this.cardRepository.findOne({
@@ -130,5 +143,87 @@ export class CardsService {
     }
     await this.cardRepository.remove(card);
     return { message: 'Card deleted' };
+  }
+
+  // ── Tags ──────────────────────────────────────────────────────────────────
+
+  async addTag(cardId: string, dto: AddTagDto, userId: string): Promise<CardTag> {
+    const card = await this.cardRepository.findOne({ where: { id: cardId } });
+    if (!card) throw new NotFoundException('Card not found');
+
+    const tag = await this.tagRepository.save(
+      this.tagRepository.create({
+        cardId,
+        name: dto.name,
+        color: dto.color ?? '#6B7280',
+      }),
+    );
+
+    await this.historyRepository.save(
+      this.historyRepository.create({
+        cardId, userId,
+        action: HistoryAction.TAG_ADDED,
+        description: `Tag "${dto.name}" added`,
+      }),
+    );
+
+    return tag;
+  }
+
+  async removeTag(tagId: string): Promise<{ message: string }> {
+    const tag = await this.tagRepository.findOne({ where: { id: tagId } });
+    if (!tag) throw new NotFoundException('Tag not found');
+    await this.tagRepository.remove(tag);
+    return { message: 'Tag removed' };
+  }
+
+  // ── Attachments ───────────────────────────────────────────────────────────
+
+  async addAttachment(
+    cardId: string,
+    file: Express.Multer.File,
+    userId: string,
+  ): Promise<Attachment> {
+    const card = await this.cardRepository.findOne({ where: { id: cardId } });
+    if (!card) throw new NotFoundException('Card not found');
+
+    const attachment = await this.attachmentRepository.save(
+      this.attachmentRepository.create({
+        cardId,
+        uploadedById: userId,
+        filename: file.filename,
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        path: file.path,
+      }),
+    );
+
+    await this.historyRepository.save(
+      this.historyRepository.create({
+        cardId, userId,
+        action: HistoryAction.ATTACHMENT_ADDED,
+        description: `Attached "${file.originalname}"`,
+      }),
+    );
+
+    return attachment;
+  }
+
+  async removeAttachment(
+    attachmentId: string,
+    userId: string,
+  ): Promise<{ message: string }> {
+    const attachment = await this.attachmentRepository.findOne({
+      where: { id: attachmentId },
+    });
+    if (!attachment) throw new NotFoundException('Attachment not found');
+
+    if (existsSync(attachment.path)) {
+      try { unlinkSync(attachment.path); } catch {}
+    }
+
+    await this.attachmentRepository.remove(attachment);
+    return { message: 'Attachment deleted' };
   }
 }

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
+import { CardEditModal } from '@/components/kanban/CardEditModal';
 import { boardsApi } from '@/lib/boards';
 import type { Card } from '@/types';
 
@@ -65,31 +66,12 @@ export default function BoardPage() {
         onEditCard={(card) => setEditingCard(card)}
       />
 
-      {/* Edit modal placeholder — replaced by full modal in Task 6 */}
       {editingCard && (
-        <div
-          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
-          onClick={() => setEditingCard(null)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-bold text-gray-900 mb-2">{editingCard.title}</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              {editingCard.description ?? 'No description.'}
-            </p>
-            <p className="text-xs text-gray-400 italic">
-              Full edit modal coming in Task 6.
-            </p>
-            <button
-              onClick={() => setEditingCard(null)}
-              className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <CardEditModal
+          card={editingCard}
+          boardId={boardId}
+          onClose={() => setEditingCard(null)}
+        />
       )}
     </div>
   );
