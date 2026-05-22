@@ -14,20 +14,9 @@ import { User } from '../../users/entities/user.entity';
 import { CardHistory } from './card-history.entity';
 import { CardTag } from './card-tag.entity';
 import { Attachment } from './attachment.entity';
+import { CardStatus, CardPriority } from './card-enums';
 
-export enum CardStatus {
-  TODO = 'todo',
-  IN_PROGRESS = 'in_progress',
-  IN_REVIEW = 'in_review',
-  DONE = 'done',
-}
-
-export enum CardPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent',
-}
+export { CardStatus, CardPriority };
 
 @Entity('cards')
 export class Card {

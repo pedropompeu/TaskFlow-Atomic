@@ -7,7 +7,8 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Card, CardStatus } from './card.entity';
+import { Card } from './card.entity';
+import { CardStatus } from './card-enums';
 import { User } from '../../users/entities/user.entity';
 
 export enum HistoryAction {
