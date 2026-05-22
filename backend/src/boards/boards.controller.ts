@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
+import { InviteMemberDto } from './dto/invite-member.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
@@ -33,9 +34,9 @@ export class BoardsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all boards owned by the current user' })
+  @ApiOperation({ summary: 'List boards owned by or shared with the current user' })
   findAll(@CurrentUser() user: User) {
-    return this.boardsService.findAllByOwner(user.id);
+    return this.boardsService.findAllForUser(user.id);
   }
 
   @Get(':id')
@@ -45,7 +46,7 @@ export class BoardsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update board title or description' })
+  @ApiOperation({ summary: 'Update board title or description (owner only)' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateBoardDto,
@@ -56,8 +57,37 @@ export class BoardsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a board and all its cards' })
+  @ApiOperation({ summary: 'Delete a board and all its cards (owner only)' })
   remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
     return this.boardsService.remove(id, user.id);
+  }
+
+  // ── Members ───────────────────────────────────────────────────────────────
+
+  @Get(':id/members')
+  @ApiOperation({ summary: 'List board members' })
+  getMembers(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+    return this.boardsService.getMembers(id, user.id);
+  }
+
+  @Post(':id/members')
+  @ApiOperation({ summary: 'Invite a user to the board by email (owner only)' })
+  inviteMember(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: InviteMemberDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.boardsService.inviteMember(id, user.id, dto.email);
+  }
+
+  @Delete(':id/members/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remove a member from the board (owner only)' })
+  removeMember(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.boardsService.removeMember(id, user.id, userId);
   }
 }

@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Card } from '../../cards/entities/card.entity';
+import { BoardMember } from './board-member.entity';
 
 @Entity('boards')
 export class Board {
@@ -31,6 +32,9 @@ export class Board {
 
   @OneToMany(() => Card, (card) => card.board, { cascade: true })
   cards: Card[];
+
+  @OneToMany(() => BoardMember, (bm) => bm.board)
+  members: BoardMember[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

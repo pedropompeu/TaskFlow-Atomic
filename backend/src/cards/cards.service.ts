@@ -11,6 +11,7 @@ import { CardHistory, HistoryAction } from './entities/card-history.entity';
 import { CardTag } from './entities/card-tag.entity';
 import { Attachment } from './entities/attachment.entity';
 import { Board } from '../boards/entities/board.entity';
+import { BoardMember } from '../boards/entities/board-member.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
@@ -31,6 +32,8 @@ export class CardsService {
     private readonly attachmentRepository: Repository<Attachment>,
     @InjectRepository(Board)
     private readonly boardRepository: Repository<Board>,
+    @InjectRepository(BoardMember)
+    private readonly boardMemberRepository: Repository<BoardMember>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly emailService: EmailService,
@@ -42,7 +45,7 @@ export class CardsService {
   async create(boardId: string, dto: CreateCardDto, userId: string): Promise<Card> {
     const board = await this.boardRepository.findOne({ where: { id: boardId } });
     if (!board) throw new NotFoundException('Board not found');
-    if (board.ownerId !== userId) throw new ForbiddenException();
+    if (!await this.canAccessBoard(boardId, userId)) throw new ForbiddenException();
 
     const card = this.cardRepository.create({ ...dto, boardId, createdById: userId });
     const saved = await this.cardRepository.save(card);
@@ -182,7 +185,7 @@ export class CardsService {
       relations: ['board'],
     });
     if (!card) throw new NotFoundException('Card not found');
-    if (card.board.ownerId !== userId && card.createdById !== userId) {
+    if (!await this.canAccessBoard(card.boardId, userId)) {
       throw new ForbiddenException();
     }
     const boardId = card.boardId;
@@ -282,5 +285,15 @@ export class CardsService {
 
     await this.attachmentRepository.remove(attachment);
     return { message: 'Attachment deleted' };
+  }
+
+  // ── Access helper ─────────────────────────────────────────────────────────
+
+  private async canAccessBoard(boardId: string, userId: string): Promise<boolean> {
+    const board = await this.boardRepository.findOne({ where: { id: boardId } });
+    if (!board) return false;
+    if (board.ownerId === userId) return true;
+    const m = await this.boardMemberRepository.findOne({ where: { boardId, userId } });
+    return !!m;
   }
 }

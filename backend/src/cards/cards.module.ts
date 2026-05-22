@@ -5,6 +5,7 @@ import { CardHistory } from './entities/card-history.entity';
 import { CardTag } from './entities/card-tag.entity';
 import { Attachment } from './entities/attachment.entity';
 import { Board } from '../boards/entities/board.entity';
+import { BoardMember } from '../boards/entities/board-member.entity';
 import { User } from '../users/entities/user.entity';
 import { CardsService } from './cards.service';
 import { CardsController } from './cards.controller';
@@ -14,7 +15,7 @@ import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Card, CardHistory, CardTag, Attachment, Board, User]),
+    TypeOrmModule.forFeature([Card, CardHistory, CardTag, Attachment, Board, BoardMember, User]),
     EmailModule,
   ],
   controllers: [CardsController, AttachmentsController],
