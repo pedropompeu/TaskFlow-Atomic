@@ -44,8 +44,8 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
         boxShadow: isDragging
           ? '0 20px 40px rgba(0,0,0,0.18)'
           : isDone
-          ? '0 0 12px rgba(67,172,141,0.15)'
-          : '0 1px 3px rgba(0,0,0,0.06)',
+          ? '0 2px 12px rgba(67,172,141,0.18)'
+          : '0 2px 8px rgba(0,0,0,0.07)',
         zIndex: isDragging ? 50 : 'auto',
       }}
       exit={{ opacity: 0, x: 40, scale: 0.92 }}
@@ -55,11 +55,12 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
         scale:   { type: 'spring', stiffness: 320, damping: 22 },
         rotate:  { type: 'spring', stiffness: 300, damping: 20 },
       }}
+      style={{ borderLeftColor: isDone ? '#43AC8D' : priority.accent, ...dndStyle }}
       className={cn(
-        'group bg-white rounded-lg border p-3 cursor-grab active:cursor-grabbing',
+        'group bg-white rounded-lg border border-l-[3px] p-3 cursor-grab active:cursor-grabbing',
         isDone
           ? 'border-atomic-green/40'
-          : 'border-atomic-gray-300/40 hover:border-atomic-orange/40',
+          : 'border-atomic-gray-300/50 hover:border-atomic-gray-300/80 hover:shadow-md',
       )}
       {...attributes}
       {...listeners}

@@ -107,9 +107,11 @@ export default function DashboardPage() {
           {boards.map((board) => (
             <div
               key={board.id}
-              className="group relative bg-white/70 backdrop-blur-sm border border-atomic-gray-300/40 rounded-xl p-5 hover:border-atomic-orange/40 hover:shadow-[0_4px_20px_rgba(247,142,47,0.12)] hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+              className="group relative bg-white/90 backdrop-blur-sm border border-atomic-gray-300/30 rounded-xl p-5 shadow-sm hover:border-atomic-orange/50 hover:shadow-[0_6px_24px_rgba(247,142,47,0.14)] hover:-translate-y-1 transition-all duration-200 cursor-pointer"
               onClick={() => router.push(`/dashboard/${board.id}`)}
             >
+              {/* Accent top bar */}
+              <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl bg-gradient-to-r from-atomic-orange via-atomic-purple to-atomic-green opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="flex items-start justify-between mb-2">
                 <h3 className="font-semibold text-atomic-dark group-hover:text-atomic-orange transition-colors">
                   {board.title}
