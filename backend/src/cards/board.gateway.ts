@@ -47,6 +47,23 @@ export class BoardGateway implements OnGatewayDisconnect {
     this.broadcastPresence(payload.boardId);
   }
 
+  // Entra na room para receber board-updated sem afetar a lista de presença
+  @SubscribeMessage('watch-board')
+  handleWatch(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { boardId: string },
+  ) {
+    client.join(`board:${payload.boardId}`);
+  }
+
+  @SubscribeMessage('unwatch-board')
+  handleUnwatch(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { boardId: string },
+  ) {
+    client.leave(`board:${payload.boardId}`);
+  }
+
   handleDisconnect(client: Socket) {
     const entry = this.presence.get(client.id);
     if (entry) {
