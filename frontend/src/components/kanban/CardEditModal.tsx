@@ -9,6 +9,7 @@ import {
   Calendar,
   Check,
   Clock,
+  Download,
   MessageSquare,
   Paperclip,
   Pencil,
@@ -321,6 +322,14 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                     <span className="text-xs text-stone-400 shrink-0">
                       {(att.size / 1024).toFixed(0)} KB
                     </span>
+                    <a
+                      href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/uploads/${att.filename}`}
+                      download={att.originalName}
+                      className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-atomic-orange transition-all"
+                      aria-label="Baixar anexo"
+                    >
+                      <Download size={13} />
+                    </a>
                     <button
                       onClick={() => deleteAttachment.mutate(att.id)}
                       className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-red-500 transition-all"

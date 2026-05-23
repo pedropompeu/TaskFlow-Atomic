@@ -18,15 +18,19 @@ O sistema suporta múltiplos usuários colaborando no mesmo quadro em tempo real
 |------|------------------------|
 | **Autenticação** | Registro e login com JWT (access + refresh token em httpOnly cookie) |
 | **Boards** | CRUD de quadros; compartilhamento por e-mail com controle dono/editor |
-| **Cards** | CRUD com prioridade, responsável, prazo, tags com color picker e anexos |
+| **Cards** | CRUD com prioridade, múltiplos responsáveis, prazo, tags com color picker, anexos com download |
+| **Comentários** | Comentários por card com avatar de autor e exclusão pelo próprio autor ou dono do board |
+| **Lixeira** | Soft delete com confirmação; cards ficam na lixeira por 7 dias antes de serem purgados automaticamente |
 | **Kanban** | Drag-and-drop vertical (priorização) e cross-coluna; toque mobile (delay 250 ms) |
-| **Tempo real** | WebSocket (Socket.io): propagação de mudanças + avatares de presença |
+| **Tempo real** | WebSocket (Socket.io): propagação de mudanças + avatares de presença + analytics ao vivo |
 | **Notificações** | In-app com badge, dropdown e mark-as-read; push via WebSocket |
-| **Modal de edição** | Animação spring, feedback de erro com shake, histórico de movimentações |
+| **Modal de edição** | Animação spring, histórico de movimentações, comentários, anexos com upload/download |
 | **Filtro de cards** | Campo de busca no header do board filtra cards por título em tempo real |
-| **Analytics** | KPIs com delta período anterior, throughput, pizza de status, barras por responsável, tabela de atrasos |
+| **Analytics — Dashboard** | KPIs com delta período anterior, completion ring, throughput (area chart), distribuição por status, cards por responsável, tabela de atrasos, health banner semáforo |
+| **Analytics — Atividade** | Feed cronológico de todas as ações (criação, movimentação, exclusão, restauração) com autor e timestamp |
+| **Analytics em tempo real** | Socket `watch-board` silencioso (sem afetar presença); toast + pulse nos KPIs ao atualizar |
 | **E-mail assíncrono** | Fila BullMQ + Nodemailer: atribuição, mudança de status, lembrete 24 h antes do prazo |
-| **E2E** | Suíte Playwright (auth, boards, cards) em Desktop Chrome e Pixel 5 |
+| **E2E** | Suíte Playwright (auth, boards, cards, comentários) em Desktop Chrome e Pixel 5 |
 
 ---
 
@@ -132,6 +136,48 @@ Por padrão os testes apontam para `http://localhost:3000`. Para apontar para ou
 
 ---
 
+## Como testar o envio de e-mails
+
+O sistema usa [Mailtrap](https://mailtrap.io) como sandbox SMTP em desenvolvimento. Os e-mails nunca chegam em caixas reais — ficam capturados no inbox do Mailtrap para inspeção.
+
+### Configuração
+
+1. Crie uma conta gratuita em [mailtrap.io](https://mailtrap.io)
+2. No painel, acesse **Email Testing → Inboxes → SMTP Settings**
+3. Copie `Username` e `Password` e preencha no `.env`:
+
+```env
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USER=<seu username do Mailtrap>
+MAIL_PASS=<sua password do Mailtrap>
+```
+
+4. Reinicie o backend: `docker compose restart backend`
+
+### Gatilhos de e-mail
+
+| Evento | Como disparar |
+|--------|--------------|
+| **Card atribuído** | Abrir um card → aba Responsáveis → adicionar um usuário |
+| **Status alterado** | Arrastar o card para outra coluna |
+| **Prazo próximo** | Criar um card com data de entrega em menos de 24 h; aguardar o cron rodar (a cada hora) ou forçar via logs |
+
+### Verificar na linha de comando
+
+```bash
+# Ver se o job foi enfileirado e processado
+docker logs taskflow-backend --follow | grep -i "email\|job"
+
+# Inspecionar a fila direto no Redis
+docker exec taskflow-redis redis-cli -a redis_pass llen bull:email:wait
+docker exec taskflow-redis redis-cli -a redis_pass llen bull:email:completed
+```
+
+Se `wait` permanecer em 0 após a ação e `completed` aumentar, o job foi processado com sucesso. Confirme no inbox do Mailtrap.
+
+---
+
 ## Variáveis de ambiente
 
 Todas as variáveis estão documentadas em `.env.example` na raiz do projeto.
@@ -177,11 +223,11 @@ Todas as variáveis estão documentadas em `.env.example` na raiz do projeto.
 
 | Variável | Padrão | Descrição |
 |----------|--------|-----------|
-| `MAIL_HOST` | `smtp.mailtrap.io` | SMTP host. Use [Mailtrap](https://mailtrap.io) em desenvolvimento |
+| `MAIL_HOST` | `sandbox.smtp.mailtrap.io` | SMTP host. Use [Mailtrap](https://mailtrap.io) em desenvolvimento |
 | `MAIL_PORT` | `2525` | Porta SMTP |
-| `MAIL_USER` | — | Usuário SMTP |
-| `MAIL_PASS` | — | Senha SMTP |
-| `MAIL_FROM` | `noreply@taskflow.dev` | Endereço remetente |
+| `MAIL_USER` | — | Usuário SMTP (obrigatório para envio real) |
+| `MAIL_PASS` | — | Senha SMTP (obrigatório para envio real) |
+| `MAIL_FROM` | `"TaskFlow" <noreply@taskflow.app>` | Endereço remetente |
 
 ### Upload de arquivos
 
@@ -206,9 +252,15 @@ O `synchronize: true` do TypeORM é conveniente em desenvolvimento, mas destruti
 
 Mutations (criar, mover, editar, deletar card) vão por REST com JWT — mais simples de validar e auditar. WebSocket é usado apenas para *notificações* de mudanças (evento `board-updated` → React Query invalida o cache) e para presença de usuários. Isso evita replicar a lógica de autorização no gateway e mantém o WebSocket como canal de broadcast, não de comando.
 
+A página de Analytics usa um handler dedicado `watch-board` (sem presença) para receber atualizações em tempo real sem poluir a lista de usuários online do board.
+
 ### Atualização otimista no React Query
 
 `useUpdateCard` e `useReorderCards` aplicam a mudança no cache local imediatamente via `onMutate`, revertendo em `onError` e invalidando em `onSettled`. O usuário vê o card mover-se instantaneamente; se a API falhar, o estado retorna ao original sem mensagem de erro visível no UI principal.
+
+### Soft delete com lixeira de 7 dias
+
+Cards deletados recebem `deleted_at` via `@DeleteDateColumn` do TypeORM. O TypeORM exclui automaticamente esses registros de todas as queries `find*`, garantindo que a lixeira não polua o board sem nenhuma lógica extra nos serviços. Um cron BullMQ roda a cada hora e purga permanentemente os cards com `deleted_at` há mais de 7 dias. O frontend invalida a query da lixeira imediatamente (via React Query + WebSocket) ao confirmar a exclusão.
 
 ### Notificações in-app via namespace WebSocket dedicado
 
@@ -224,7 +276,7 @@ Envios de e-mail nunca bloqueiam a resposta da API: `CardsService` enfileira job
 
 ### Armazenamento local de uploads
 
-Anexos são salvos em `./uploads` com nome UUID para evitar colisões. O diretório é montado como volume Docker e servido como rota estática via Express (`/uploads/*`). Para produção, a recomendação é migrar para S3 ou equivalente — a troca exige alterar apenas `AttachmentsController` e a URL retornada; o restante do sistema não muda.
+Anexos são salvos em `./uploads` com nome UUID para evitar colisões. O diretório é montado como volume Docker e servido como rota estática via Express (`/uploads/*`). O download usa o atributo HTML `download` com o nome original do arquivo — sem endpoint extra no backend. Para produção, a recomendação é migrar para S3 ou equivalente; a troca exige alterar apenas `AttachmentsController` e a URL retornada.
 
 ### Monorepo simples sem Turborepo/Nx
 
@@ -270,17 +322,23 @@ Documentação interativa disponível no Swagger em `/api/docs` após subir o ba
 | `GET` | `/boards/:id/members` | Lista membros do board |
 | `POST` | `/boards/:id/members` | Convida membro por e-mail |
 | `DELETE` | `/boards/:id/members/:userId` | Remove membro (somente dono) |
-| `GET` | `/boards/:id/cards` | Lista cards do board |
+| `GET` | `/boards/:id/cards` | Lista cards ativos do board |
 | `POST` | `/boards/:id/cards` | Cria card |
 | `PATCH` | `/boards/:boardId/cards/reorder` | Reordena cards dentro da coluna |
-| `GET` | `/cards/:id` | Detalhe do card (histórico, anexos, tags) |
+| `GET` | `/boards/:id/trash` | Lista cards na lixeira do board |
+| `GET` | `/cards/:id` | Detalhe do card (histórico, comentários, anexos, tags) |
 | `PATCH` | `/cards/:id` | Atualiza card |
-| `DELETE` | `/cards/:id` | Remove card |
+| `DELETE` | `/cards/:id` | Move card para a lixeira (soft delete) |
+| `POST` | `/cards/:id/restore` | Restaura card da lixeira |
 | `POST` | `/cards/:id/tags` | Adiciona tag |
 | `DELETE` | `/cards/:id/tags/:tagId` | Remove tag |
 | `POST` | `/cards/:id/attachments` | Upload de anexo |
 | `DELETE` | `/cards/:id/attachments/:id` | Remove anexo |
+| `GET` | `/uploads/:filename` | Download de anexo (rota estática) |
+| `POST` | `/cards/:id/comments` | Adiciona comentário |
+| `DELETE` | `/cards/:id/comments/:commentId` | Remove comentário |
 | `GET` | `/analytics` | Resumo analítico (`?boardId` `?startDate` `?endDate`) |
+| `GET` | `/analytics/activity` | Feed de atividades (`?boardId` `?startDate` `?endDate` `?limit`) |
 | `GET` | `/notifications` | Lista notificações do usuário |
 | `GET` | `/notifications/unread-count` | Contagem de não lidas |
 | `PATCH` | `/notifications/:id/read` | Marca notificação como lida |
@@ -297,17 +355,18 @@ TaskFlow-Atomic/
 ├── .env.example
 ├── backend/
 │   └── src/
-│       ├── analytics/          # KPIs e gráficos
+│       ├── analytics/          # KPIs, gráficos e activity feed
 │       ├── auth/               # JWT, guards, decorators
 │       ├── boards/             # CRUD de boards + membros
-│       ├── cards/              # CRUD de cards + board.gateway.ts
+│       ├── cards/              # CRUD de cards, comentários, anexos,
+│       │                       # soft delete, lixeira, board.gateway.ts
 │       ├── database/
-│       │   └── migrations/     # 4 migrations (schema inicial → notificações)
+│       │   └── migrations/     # 9 migrations (schema inicial → analytics)
 │       ├── email/              # BullMQ processor + cron de lembretes
 │       ├── notifications/      # Entidade, service, gateway, controller
 │       └── users/
 └── frontend/
-    ├── e2e/                    # Playwright (auth, boards, cards)
+    ├── e2e/                    # Playwright (auth, boards, cards, comentários)
     └── src/
         ├── app/
         │   ├── (auth)/         # login, register
@@ -315,9 +374,11 @@ TaskFlow-Atomic/
         ├── components/
         │   ├── kanban/         # KanbanBoard, KanbanColumn, KanbanCard,
         │   │                   # CardEditModal, CreateCardForm,
-        │   │                   # BoardMembersPanel
-        │   └── layout/         # NotificationBell
-        ├── hooks/              # useBoards, useCards, useMembers,
-        │                       # useNotifications, useBoardSocket, useMe
-        └── lib/                # api, boards, analytics, notifications
+        │   │                   # BoardMembersPanel, TrashPanel
+        │   └── layout/         # Header, NotificationBell
+        ├── hooks/              # useBoards, useCards, useComments,
+        │                       # useMembers, useNotifications,
+        │                       # useBoardSocket, useAnalyticsSocket, useMe
+        └── lib/                # api, boards, cards, comments,
+                                # analytics, notifications
 ```
