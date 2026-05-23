@@ -78,7 +78,10 @@ export function useDeleteCard(boardId: string) {
     onError: (_err, _vars, ctx: any) => {
       if (ctx?.prev) qc.setQueryData(cardsKey(boardId), ctx.prev);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: cardsKey(boardId) }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: cardsKey(boardId) });
+      qc.invalidateQueries({ queryKey: trashKey(boardId) });
+    },
   });
 }
 

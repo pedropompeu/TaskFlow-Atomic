@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { io, Socket } from 'socket.io-client';
-import { cardsKey } from './useCards';
+import { cardsKey, trashKey } from './useCards';
 import { useMe } from './useMe';
 
 export interface OnlineUser {
@@ -36,8 +36,11 @@ export function useBoardSocket(boardId: string) {
       });
     });
 
-    socket.on('board-updated', () => {
+    socket.on('board-updated', ({ type }: { type: string }) => {
       qc.invalidateQueries({ queryKey: cardsKey(boardId) });
+      if (type === 'card-deleted' || type === 'card-restored') {
+        qc.invalidateQueries({ queryKey: trashKey(boardId) });
+      }
     });
 
     socket.on('presence', (data: { boardId: string; users: OnlineUser[] }) => {
