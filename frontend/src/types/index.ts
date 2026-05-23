@@ -61,6 +61,8 @@ export interface Board {
   description: string | null;
   ownerId: string;
   cards: Card[];
+  coverType: 'color' | 'gradient' | 'image' | null;
+  coverValue: string | null;
   createdAt: string;
   updatedAt: string;
 }

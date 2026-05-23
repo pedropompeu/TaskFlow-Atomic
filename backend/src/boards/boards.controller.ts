@@ -9,9 +9,15 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
@@ -60,6 +66,38 @@ export class BoardsController {
   @ApiOperation({ summary: 'Delete a board and all its cards (owner only)' })
   remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
     return this.boardsService.remove(id, user.id);
+  }
+
+  @Post(':id/cover-image')
+  @ApiOperation({ summary: 'Upload a cover image for a board (owner only)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: process.env.UPLOAD_DEST || './uploads',
+        filename: (_req, file, cb) => {
+          cb(null, `cover-${uuidv4()}${extname(file.originalname)}`);
+        },
+      }),
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        cb(null, allowed.includes(file.mimetype));
+      },
+    }),
+  )
+  uploadCoverImage(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: User,
+  ) {
+    return this.boardsService.uploadCoverImage(id, file, user.id);
   }
 
   // ── Members ───────────────────────────────────────────────────────────────

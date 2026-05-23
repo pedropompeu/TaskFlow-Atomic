@@ -68,6 +68,16 @@ export class BoardsService {
     return this.boardRepository.save(board);
   }
 
+  async uploadCoverImage(id: string, file: Express.Multer.File, userId: string) {
+    const board = await this.boardRepository.findOne({ where: { id } });
+    if (!board) throw new NotFoundException('Board not found');
+    if (board.ownerId !== userId) throw new ForbiddenException();
+    const coverValue = `/uploads/${file.filename}`;
+    Object.assign(board, { coverType: 'image', coverValue });
+    await this.boardRepository.save(board);
+    return { coverType: 'image', coverValue };
+  }
+
   async remove(id: string, userId: string): Promise<{ message: string }> {
     const board = await this.boardRepository.findOne({ where: { id } });
     if (!board) throw new NotFoundException('Board not found');

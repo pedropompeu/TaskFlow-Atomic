@@ -56,10 +56,10 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
       }}
       style={{ borderLeftColor: isDone ? '#43AC8D' : priority.accent, ...dndStyle }}
       className={cn(
-        'group bg-white rounded-lg border border-l-[3px] p-3 cursor-grab active:cursor-grabbing',
+        'group bg-white/88 backdrop-blur-sm rounded-lg border border-l-[3px] p-3 cursor-grab active:cursor-grabbing',
         isDone
           ? 'border-atomic-green/40'
-          : 'border-atomic-gray-300/50 hover:border-atomic-gray-300/80 hover:shadow-md',
+          : 'border-white/50 hover:border-white/80 hover:shadow-md',
       )}
       {...attributes}
       {...listeners}

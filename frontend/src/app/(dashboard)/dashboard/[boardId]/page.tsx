@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, X, Users } from 'lucide-react';
@@ -8,12 +8,30 @@ import { useQuery } from '@tanstack/react-query';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { CardEditModal } from '@/components/kanban/CardEditModal';
 import { BoardMembersPanel } from '@/components/kanban/BoardMembersPanel';
+import { BoardCoverPicker } from '@/components/kanban/BoardCoverPicker';
 import { boardsApi } from '@/lib/boards';
 import { useBoardSocket } from '@/hooks/useBoardSocket';
 import { useMe } from '@/hooks/useMe';
 import type { Card } from '@/types';
 
 const AVATAR_COLORS = ['#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32'];
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+function applyBackground(type: string | null, value: string | null) {
+  const root = document.getElementById('dashboard-root');
+  if (!root) return;
+  root.style.transition = 'background 0.6s ease';
+  if (!type || !value) {
+    root.style.background = '';
+    return;
+  }
+  if (type === 'color')    root.style.background = value;
+  if (type === 'gradient') root.style.background = value;
+  if (type === 'image') {
+    root.style.background = `url(${API_URL}${value}) center/cover fixed no-repeat`;
+  }
+}
 
 export default function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>();
@@ -31,6 +49,12 @@ export default function BoardPage() {
   });
 
   const isOwner = !!me && !!board && me.id === board.ownerId;
+
+  useEffect(() => {
+    if (!board) return;
+    applyBackground(board.coverType, board.coverValue);
+    return () => applyBackground(null, null);
+  }, [board?.coverType, board?.coverValue]);
 
   if (isLoading) {
     return (
@@ -53,13 +77,15 @@ export default function BoardPage() {
     );
   }
 
+  const hasCover = !!board.coverType && !!board.coverValue;
+
   return (
     <div>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 flex-wrap">
         <button
           onClick={() => router.push('/dashboard')}
-          className="p-1.5 text-atomic-gray-500 hover:text-atomic-dark hover:bg-atomic-ice rounded-lg transition-colors"
+          className="p-1.5 text-atomic-gray-500 hover:text-atomic-dark hover:bg-white/60 rounded-lg transition-colors"
           aria-label="Voltar aos quadros"
         >
           <ArrowLeft size={18} />
@@ -94,6 +120,13 @@ export default function BoardPage() {
             )}
           </div>
         )}
+
+        {/* Aparência do board */}
+        <BoardCoverPicker
+          boardId={boardId}
+          isOwner={isOwner}
+          hasCover={hasCover}
+        />
 
         {/* Botão Membros */}
         <button

@@ -36,6 +36,12 @@ export class Board {
   @OneToMany(() => BoardMember, (bm) => bm.board)
   members: BoardMember[];
 
+  @Column({ name: 'cover_type', length: 10, nullable: true })
+  coverType: string | null;
+
+  @Column({ name: 'cover_value', length: 500, nullable: true })
+  coverValue: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

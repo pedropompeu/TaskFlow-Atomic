@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-atomic-ice relative overflow-hidden">
+    <div id="dashboard-root" className="min-h-screen bg-atomic-ice relative overflow-hidden">
 
       {/* ── Aurora — blobs animados no fundo ── */}
       <div className="pointer-events-none fixed inset-0 -z-[5] overflow-hidden">
