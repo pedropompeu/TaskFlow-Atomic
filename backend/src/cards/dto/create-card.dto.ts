@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Length,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -41,6 +42,12 @@ export class CreateCardDto {
   @IsOptional()
   @IsDateString()
   dueDate?: string;
+
+  @ApiPropertyOptional({ description: 'Hex color accent, e.g. #F78E2F' })
+  @IsOptional()
+  @IsString()
+  @Length(4, 7)
+  accentColor?: string;
 
   @ApiPropertyOptional({ default: 0 })
   @IsOptional()

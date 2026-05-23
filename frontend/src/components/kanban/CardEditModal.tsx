@@ -31,6 +31,11 @@ import { PRIORITY_META, type Card, type CardPriority } from '@/types';
 
 const AVATAR_COLORS = ['#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32'];
 
+const ACCENT_COLORS = [
+  '#F78E2F', '#A559FD', '#43AC8D', '#1D84B7',
+  '#FDCC32', '#EF4444', '#EC4899', '#6B7280',
+];
+
 interface CardEditModalProps {
   card: Card;
   boardId: string;
@@ -391,6 +396,37 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                   <option key={k} value={k}>{v.label}</option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+                Cor de destaque
+              </label>
+              <div className="flex flex-wrap gap-1.5 items-center">
+                {ACCENT_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    title={color}
+                    onClick={() => updateCard.mutate({ accentColor: color })}
+                    style={{ backgroundColor: color }}
+                    className={cn(
+                      'w-6 h-6 rounded-full transition-all hover:scale-110',
+                      detail.accentColor === color
+                        ? 'ring-2 ring-offset-1 ring-stone-400'
+                        : 'opacity-80 hover:opacity-100',
+                    )}
+                  />
+                ))}
+                {detail.accentColor && (
+                  <button
+                    title="Remover cor"
+                    onClick={() => updateCard.mutate({ accentColor: null })}
+                    className="w-6 h-6 rounded-full border border-stone-300 bg-stone-100 flex items-center justify-center text-stone-400 hover:text-red-500 hover:border-red-300 transition-all"
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div>

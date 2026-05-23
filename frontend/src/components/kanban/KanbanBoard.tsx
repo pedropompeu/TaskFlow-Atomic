@@ -6,9 +6,11 @@ import {
   DragOverlay,
   PointerSensor,
   TouchSensor,
-  closestCorners,
+  closestCenter,
+  pointerWithin,
   useSensor,
   useSensors,
+  type CollisionDetection,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useMemo, useState } from 'react';
@@ -16,6 +18,13 @@ import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { useCards, useCreateCard, useUpdateCard, useDeleteCard, useReorderCards } from '@/hooks/useCards';
 import { COLUMN_CONFIG, type Card, type CardStatus } from '@/types';
+
+// Cursor-first collision: reacts to pointer position rather than drag-item bounding box.
+// Makes insertion-point detection much more responsive in vertical lists.
+const kanbanCollision: CollisionDetection = (args) => {
+  const hits = pointerWithin(args);
+  return hits.length > 0 ? hits : closestCenter(args);
+};
 
 interface KanbanBoardProps {
   boardId: string;
@@ -99,7 +108,10 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '', filterUserId
     // Same-column: reorder vertically
     const columnCards = byStatus[draggedCard.status];
     const oldIndex = columnCards.findIndex((c) => c.id === active.id);
-    const newIndex = columnCards.findIndex((c) => c.id === over.id);
+    // Drop on column area (not a card) → move to last position
+    const newIndex = isColumnTarget
+      ? columnCards.length - 1
+      : columnCards.findIndex((c) => c.id === over.id);
     if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
 
     const reordered = arrayMove(columnCards, oldIndex, newIndex);
@@ -109,7 +121,7 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '', filterUserId
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={kanbanCollision}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -131,10 +143,10 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '', filterUserId
         ))}
       </div>
 
-      {/* Ghost card shown while dragging */}
-      <DragOverlay>
+      {/* Card flutuante durante o arrasto */}
+      <DragOverlay dropAnimation={{ duration: 180, easing: 'ease' }}>
         {activeCard && (
-          <div className="rotate-2 opacity-90">
+          <div className="rotate-2 scale-105 opacity-95 drop-shadow-2xl">
             <KanbanCard
               card={activeCard}
               onDelete={() => {}}

@@ -95,6 +95,9 @@ export class Card {
   })
   assignees: User[];
 
+  @Column({ name: 'accent_color', nullable: true, length: 7, default: null })
+  accentColor: string | null;
+
   @Column({ name: 'deadline_reminder_sent_at', type: 'timestamp', nullable: true })
   deadlineReminderSentAt: Date | null;
 

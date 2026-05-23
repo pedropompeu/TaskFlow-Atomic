@@ -48,6 +48,7 @@ export interface Card {
   assignedToId: string | null;
   assignees: User[];
   dueDate: string | null;
+  accentColor: string | null;
   position: number;
   tags: CardTag[];
   history: CardHistoryEntry[];

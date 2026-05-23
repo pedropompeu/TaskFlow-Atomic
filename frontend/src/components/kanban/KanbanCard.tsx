@@ -4,7 +4,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'framer-motion';
 import { Trash2, Calendar } from 'lucide-react';
-import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
+import { formatDistanceToNow, isPast, parseISO, differenceInHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { Card } from '@/types';
@@ -28,9 +28,23 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
     transition: isDragging ? undefined : transition,
   };
 
-  const isOverdue = card.dueDate && isPast(parseISO(card.dueDate)) && card.status !== 'done';
   const isDone    = card.status === 'done';
-  const priority  = PRIORITY_META[card.priority];
+  const priority  = PRIORITY_META[card.priority] ?? PRIORITY_META.medium;
+  const due       = card.dueDate ? parseISO(card.dueDate) : null;
+  const isOverdue = due && isPast(due) && !isDone;
+  const isNearDue = due && !isPast(due) && differenceInHours(due, new Date()) < 48 && !isDone;
+
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={dndStyle}
+        {...attributes}
+        {...listeners}
+        className="rounded-lg border-2 border-dashed border-atomic-orange/40 bg-atomic-orange/5 min-h-[80px]"
+      />
+    );
+  }
 
   return (
     <motion.div
@@ -56,7 +70,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
         scale:   { type: 'spring', stiffness: 320, damping: 22 },
         rotate:  { type: 'spring', stiffness: 300, damping: 20 },
       }}
-      style={{ borderLeftColor: isDone ? '#43AC8D' : priority.accent, ...dndStyle }}
+      style={{ borderLeftColor: isDone ? '#43AC8D' : (card.accentColor ?? priority.accent), ...dndStyle }}
       className={cn(
         'group bg-white/88 backdrop-blur-sm rounded-lg border border-l-[3px] p-3 cursor-grab active:cursor-grabbing',
         isDone
@@ -111,10 +125,15 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
 
       {/* Footer */}
       <div className="flex items-center justify-between gap-2 mt-2">
-        {card.dueDate && (
-          <span className={cn('flex items-center gap-1 text-xs', isOverdue ? 'text-red-600 font-medium' : 'text-atomic-gray-500')}>
+        {due && (
+          <span className={cn(
+            'flex items-center gap-1 text-xs font-medium',
+            isOverdue ? 'bg-red-100 text-red-600 rounded px-1.5 py-0.5'     :
+            isNearDue ? 'bg-amber-100 text-amber-700 rounded px-1.5 py-0.5'  :
+                        'text-atomic-gray-500',
+          )}>
             <Calendar size={11} />
-            {formatDistanceToNow(parseISO(card.dueDate), { addSuffix: true, locale: ptBR })}
+            {formatDistanceToNow(due, { addSuffix: true, locale: ptBR })}
           </span>
         )}
         {card.assignees && card.assignees.length > 0 && (
