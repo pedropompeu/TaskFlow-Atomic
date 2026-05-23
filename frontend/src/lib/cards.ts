@@ -12,6 +12,10 @@ export const cardsApi = {
   remove: (id: string) => api.delete(`/cards/${id}`),
   reorder: (boardId: string, orderedIds: string[]) =>
     api.patch(`/boards/${boardId}/cards/reorder`, { orderedIds }),
+  addAssignee: (id: string, userId: string) =>
+    api.post<Card>(`/cards/${id}/assignees`, { userId }).then((r) => r.data),
+  removeAssignee: (id: string, userId: string) =>
+    api.delete<Card>(`/cards/${id}/assignees/${userId}`).then((r) => r.data),
   uploadAttachment: (id: string, file: File) => {
     const form = new FormData();
     form.append('file', file);

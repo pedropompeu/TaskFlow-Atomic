@@ -81,3 +81,27 @@ export function useDeleteCard(boardId: string) {
     onSettled: () => qc.invalidateQueries({ queryKey: cardsKey(boardId) }),
   });
 }
+
+export function useAddAssignee(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, userId }: { id: string; userId: string }) =>
+      cardsApi.addAssignee(id, userId),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: cardsKey(boardId) });
+      qc.invalidateQueries({ queryKey: ['card', id] });
+    },
+  });
+}
+
+export function useRemoveAssignee(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, userId }: { id: string; userId: string }) =>
+      cardsApi.removeAssignee(id, userId),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: cardsKey(boardId) });
+      qc.invalidateQueries({ queryKey: ['card', id] });
+    },
+  });
+}

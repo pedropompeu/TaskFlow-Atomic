@@ -12,6 +12,7 @@ import { BoardCoverPicker } from '@/components/kanban/BoardCoverPicker';
 import { boardsApi } from '@/lib/boards';
 import { useBoardSocket } from '@/hooks/useBoardSocket';
 import { useMe } from '@/hooks/useMe';
+import { useMembers } from '@/hooks/useMembers';
 import type { Card } from '@/types';
 
 const AVATAR_COLORS = ['#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32'];
@@ -38,9 +39,11 @@ export default function BoardPage() {
   const router = useRouter();
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [filterText, setFilterText] = useState('');
+  const [filterUserId, setFilterUserId] = useState('');
   const [showMembers, setShowMembers] = useState(false);
   const { onlineUsers } = useBoardSocket(boardId);
   const { data: me } = useMe();
+  const { data: members } = useMembers(boardId);
 
   const { data: board, isLoading } = useQuery({
     queryKey: ['board', boardId],
@@ -137,6 +140,21 @@ export default function BoardPage() {
           <span className="hidden xs:inline">Membros</span>
         </button>
 
+        {/* Filtro por usuário */}
+        {members && (
+          <select
+            value={filterUserId}
+            onChange={(e) => setFilterUserId(e.target.value)}
+            className="px-2.5 py-1.5 text-sm border border-atomic-gray-300/50 rounded-lg bg-white/70 focus:outline-none focus:ring-2 focus:ring-atomic-orange/40 text-atomic-gray-600 transition-all"
+          >
+            <option value="">Todos</option>
+            <option value="__none__">Sem responsável</option>
+            {[members.owner, ...members.members].map((m) => (
+              <option key={m.id} value={m.id}>{m.name.split(' ')[0]}</option>
+            ))}
+          </select>
+        )}
+
         {/* Busca */}
         <div className="relative">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-atomic-gray-500 pointer-events-none" />
@@ -163,6 +181,7 @@ export default function BoardPage() {
         boardId={boardId}
         onEditCard={(card) => setEditingCard(card)}
         filterText={filterText}
+        filterUserId={filterUserId}
       />
 
       <AnimatePresence>

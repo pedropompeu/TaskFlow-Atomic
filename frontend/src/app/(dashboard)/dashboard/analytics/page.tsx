@@ -328,7 +328,9 @@ export default function AnalyticsPage() {
                             </span>
                           </td>
                           <td className="py-3 pr-4 text-atomic-gray-600">
-                            {card.assignedTo?.name ?? '—'}
+                            {card.assignees?.length
+                              ? card.assignees.map((a) => a.name.split(' ')[0]).join(', ')
+                              : '—'}
                           </td>
                           <td className="py-3 pr-4">
                             <div className="flex flex-col">

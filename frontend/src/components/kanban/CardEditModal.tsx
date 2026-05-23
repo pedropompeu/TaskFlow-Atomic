@@ -5,23 +5,31 @@ import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
+  ArrowRightLeft,
+  Calendar,
+  Check,
   Clock,
   Paperclip,
+  Pencil,
   Plus,
+  PlusCircle,
   Tag,
   Trash2,
   Upload,
+  UserCheck,
+  UserMinus,
   X,
-  Check,
 } from 'lucide-react';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { api } from '@/lib/api';
 import { cardsApi } from '@/lib/cards';
-import { useUsers } from '@/hooks/useUsers';
-import { cardsKey } from '@/hooks/useCards';
+import { cardsKey, useAddAssignee, useRemoveAssignee } from '@/hooks/useCards';
+import { useMembers } from '@/hooks/useMembers';
 import { cn } from '@/lib/utils';
 import { PRIORITY_META, type Card, type CardPriority } from '@/types';
+
+const AVATAR_COLORS = ['#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32'];
 
 interface CardEditModalProps {
   card: Card;
@@ -29,17 +37,21 @@ interface CardEditModalProps {
   onClose: () => void;
 }
 
-const ACTION_ICON: Record<string, string> = {
-  created: '🟢',
-  moved: '↔️',
-  assigned: '👤',
-  unassigned: '👤',
-  updated: '✏️',
-  attachment_added: '📎',
-  tag_added: '🏷️',
-  tag_removed: '🏷️',
-  due_date_set: '📅',
-};
+function ActionIcon({ action }: { action: string }) {
+  const base = 'shrink-0';
+  switch (action) {
+    case 'created':          return <PlusCircle    size={14} className={cn(base, 'text-green-500')} />;
+    case 'moved':            return <ArrowRightLeft size={14} className={cn(base, 'text-blue-500')} />;
+    case 'assigned':         return <UserCheck      size={14} className={cn(base, 'text-atomic-orange')} />;
+    case 'unassigned':       return <UserMinus      size={14} className={cn(base, 'text-stone-400')} />;
+    case 'updated':          return <Pencil         size={14} className={cn(base, 'text-stone-500')} />;
+    case 'attachment_added': return <Paperclip      size={14} className={cn(base, 'text-stone-500')} />;
+    case 'tag_added':        return <Tag            size={14} className={cn(base, 'text-purple-500')} />;
+    case 'tag_removed':      return <Tag            size={14} className={cn(base, 'text-stone-400')} />;
+    case 'due_date_set':     return <Calendar       size={14} className={cn(base, 'text-atomic-orange')} />;
+    default:                 return <div className="w-2 h-2 rounded-full bg-stone-300 m-auto" />;
+  }
+}
 
 const STATUS_LABEL: Record<string, string> = {
   todo: 'A Fazer',
@@ -60,10 +72,16 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const { data: detail = card } = useQuery({
     queryKey: ['card', card.id],
     queryFn: () => cardsApi.get(card.id),
-    initialData: card,
+    placeholderData: card,
   });
 
-  const { data: users = [] } = useUsers();
+  const { data: members } = useMembers(boardId);
+  const addAssignee = useAddAssignee(boardId);
+  const removeAssignee = useRemoveAssignee(boardId);
+
+  const allMembers = members ? [members.owner, ...members.members] : [];
+  const assignedIds = new Set(detail.assignees?.map((a) => a.id) ?? []);
+  const availableToAdd = allMembers.filter((m) => !assignedIds.has(m.id));
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: cardsKey(boardId) });
@@ -319,20 +337,43 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
           <div className="w-52 shrink-0 space-y-5">
             <div>
               <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
-                Responsável
+                Responsáveis
               </label>
-              <select
-                defaultValue={detail.assignedToId ?? ''}
-                onChange={(e) =>
-                  updateCard.mutate({ assignedToId: e.target.value || undefined })
-                }
-                className="w-full px-2.5 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
-              >
-                <option value="">Sem responsável</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
+              <div className="flex flex-wrap gap-1.5 mb-2 min-h-[24px]">
+                {detail.assignees?.map((u, i) => (
+                  <span
+                    key={u.id}
+                    className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full text-white"
+                    style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
+                  >
+                    {u.name.split(' ')[0]}
+                    <button
+                      onClick={() => removeAssignee.mutate({ id: card.id, userId: u.id })}
+                      className="hover:opacity-70 transition-opacity"
+                      aria-label={`Remover ${u.name}`}
+                    >
+                      <X size={9} />
+                    </button>
+                  </span>
                 ))}
-              </select>
+              </div>
+              {availableToAdd.length > 0 && (
+                <select
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      addAssignee.mutate({ id: card.id, userId: e.target.value });
+                      e.target.value = '';
+                    }
+                  }}
+                  className="w-full px-2.5 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-stone-500"
+                >
+                  <option value="">+ Adicionar…</option>
+                  {availableToAdd.map((u) => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>
@@ -396,18 +437,20 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
           </div>
         </div>
 
-        {/* History */}
-        {(detail.history?.length ?? 0) > 0 && (
-          <div className="border-t border-stone-100 px-6 py-4">
-            <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-3 flex items-center gap-1">
-              <Clock size={11} /> Atividade
-            </h4>
+        {/* History — sempre visível */}
+        <div className="border-t border-stone-100 px-6 py-4">
+          <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+            <Clock size={11} /> Atividade
+          </h4>
+          {!detail.history?.length ? (
+            <p className="text-sm text-stone-400 text-center py-3">Nenhuma atividade ainda</p>
+          ) : (
             <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
-              {detail.history?.map((entry) => (
-                <div key={entry.id} className="flex items-start gap-3">
-                  <span className="text-base leading-none shrink-0 mt-0.5">
-                    {ACTION_ICON[entry.action] ?? '•'}
-                  </span>
+              {detail.history.map((entry) => (
+                <div key={entry.id} className="flex items-start gap-2.5">
+                  <div className="w-6 h-6 rounded-full bg-stone-50 border border-stone-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <ActionIcon action={entry.action} />
+                  </div>
                   <div className="min-w-0">
                     <p className="text-sm text-stone-700 leading-snug">
                       {entry.description}
@@ -423,8 +466,8 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );

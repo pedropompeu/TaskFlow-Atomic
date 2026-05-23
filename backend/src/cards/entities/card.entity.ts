@@ -5,8 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  ManyToMany,
   OneToMany,
   JoinColumn,
+  JoinTable,
   Index,
 } from 'typeorm';
 import { Board } from '../../boards/entities/board.entity';
@@ -84,6 +86,14 @@ export class Card {
 
   @OneToMany(() => Attachment, (attachment) => attachment.card, { cascade: true })
   attachments: Attachment[];
+
+  @ManyToMany(() => User)
+  @JoinTable({
+    name: 'card_assignees',
+    joinColumn: { name: 'card_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
+  })
+  assignees: User[];
 
   @Column({ name: 'deadline_reminder_sent_at', type: 'timestamp', nullable: true })
   deadlineReminderSentAt: Date | null;

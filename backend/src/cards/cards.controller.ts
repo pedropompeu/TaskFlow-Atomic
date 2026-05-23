@@ -17,6 +17,7 @@ import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { ReorderCardsDto } from './dto/reorder-cards.dto';
 import { AddTagDto } from './dto/add-tag.dto';
+import { AddAssigneeDto } from './dto/add-assignee.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
@@ -99,5 +100,28 @@ export class CardsController {
     @Param('tagId', ParseUUIDPipe) tagId: string,
   ) {
     return this.cardsService.removeTag(tagId);
+  }
+
+  // ── Assignees ──────────────────────────────────────────────────────────────
+
+  @Post('cards/:id/assignees')
+  @ApiOperation({ summary: 'Add an assignee to a card' })
+  addAssignee(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AddAssigneeDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.cardsService.addAssignee(id, dto.userId, user.id);
+  }
+
+  @Delete('cards/:id/assignees/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remove an assignee from a card' })
+  removeAssignee(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.cardsService.removeAssignee(id, userId, user.id);
   }
 }

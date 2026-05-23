@@ -86,10 +86,10 @@ export class AnalyticsService {
   private async getCardsByAssignee(boardId?: string, startDate?: string, endDate?: string) {
     const qb = this.cardRepo
       .createQueryBuilder('c')
-      .leftJoin('c.assignedTo', 'u')
-      .select("COALESCE(u.name, 'Unassigned')", 'assignee')
+      .leftJoin('c.assignees', 'u')
+      .select("COALESCE(u.name, 'Sem responsável')", 'assignee')
       .addSelect('COUNT(c.id)::int', 'count')
-      .groupBy("COALESCE(u.name, 'Unassigned')")
+      .groupBy("COALESCE(u.name, 'Sem responsável')")
       .orderBy('count', 'DESC');
 
     if (boardId) qb.andWhere('c.board_id = :boardId', { boardId });
@@ -102,7 +102,7 @@ export class AnalyticsService {
   private async getOverdueCards(boardId?: string) {
     const qb = this.cardRepo
       .createQueryBuilder('c')
-      .leftJoinAndSelect('c.assignedTo', 'u')
+      .leftJoinAndSelect('c.assignees', 'assignees')
       .where('c.due_date < NOW()')
       .andWhere('c.status != :done', { done: CardStatus.DONE })
       .orderBy('c.due_date', 'ASC');

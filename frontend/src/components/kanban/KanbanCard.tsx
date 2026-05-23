@@ -3,12 +3,14 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'framer-motion';
-import { Trash2, Calendar, User as UserIcon } from 'lucide-react';
+import { Trash2, Calendar } from 'lucide-react';
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { Card } from '@/types';
 import { PRIORITY_META } from '@/types';
+
+const AVATAR_COLORS = ['#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32'];
 
 
 interface KanbanCardProps {
@@ -115,11 +117,27 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
             {formatDistanceToNow(parseISO(card.dueDate), { addSuffix: true, locale: ptBR })}
           </span>
         )}
-        {card.assignedTo && (
-          <span className="flex items-center gap-1 text-xs text-atomic-gray-500 ml-auto">
-            <UserIcon size={11} />
-            {card.assignedTo.name.split(' ')[0]}
-          </span>
+        {card.assignees && card.assignees.length > 0 && (
+          <div className="flex items-center -space-x-1.5 ml-auto">
+            {card.assignees.slice(0, 3).map((u, i) => (
+              <div
+                key={u.id}
+                title={u.name}
+                style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length], zIndex: 3 - i }}
+                className="relative w-5 h-5 rounded-full border border-white/80 flex items-center justify-center text-[9px] font-bold text-white"
+              >
+                {u.name.charAt(0).toUpperCase()}
+              </div>
+            ))}
+            {card.assignees.length > 3 && (
+              <div
+                style={{ zIndex: 0 }}
+                className="relative w-5 h-5 rounded-full border border-white/80 bg-atomic-gray-500 flex items-center justify-center text-[9px] font-bold text-white"
+              >
+                +{card.assignees.length - 3}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </motion.div>

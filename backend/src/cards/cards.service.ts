@@ -20,6 +20,13 @@ import { EmailService } from '../email/email.service';
 import { BoardGateway } from './board.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 
+const STATUS_LABEL: Record<string, string> = {
+  todo:        'A Fazer',
+  in_progress: 'Em Andamento',
+  in_review:   'Em Revisão',
+  done:        'Concluído',
+};
+
 @Injectable()
 export class CardsService {
   constructor(
@@ -58,7 +65,7 @@ export class CardsService {
         userId,
         action: HistoryAction.CREATED,
         toStatus: saved.status,
-        description: 'Card created',
+        description: 'Card criado',
       }),
     );
 
@@ -71,7 +78,8 @@ export class CardsService {
   findByBoard(boardId: string): Promise<Card[]> {
     return this.cardRepository.find({
       where: { boardId },
-      relations: ['assignedTo', 'tags'],
+      relations: ['assignedTo', 'tags', 'assignees'],
+      relationLoadStrategy: 'query',
       order: { status: 'ASC', position: 'ASC' },
     });
   }
@@ -81,6 +89,7 @@ export class CardsService {
       where: { id },
       relations: [
         'assignedTo',
+        'assignees',
         'createdBy',
         'tags',
         'attachments',
@@ -114,7 +123,7 @@ export class CardsService {
         action: HistoryAction.MOVED,
         fromStatus: prevStatus,
         toStatus: dto.status,
-        description: `Moved from ${prevStatus} to ${dto.status}`,
+        description: `Movido de "${STATUS_LABEL[prevStatus] ?? prevStatus}" para "${STATUS_LABEL[dto.status] ?? dto.status}"`,
       });
     }
 
@@ -122,7 +131,7 @@ export class CardsService {
       entries.push({
         cardId: id, userId,
         action: dto.assignedToId ? HistoryAction.ASSIGNED : HistoryAction.UNASSIGNED,
-        description: dto.assignedToId ? 'Card assigned' : 'Card unassigned',
+        description: dto.assignedToId ? 'Responsável atribuído' : 'Responsável removido',
       });
     }
 
@@ -130,7 +139,7 @@ export class CardsService {
       entries.push({
         cardId: id, userId,
         action: HistoryAction.DUE_DATE_SET,
-        description: `Due date set to ${dto.dueDate}`,
+        description: 'Prazo atualizado',
       });
     }
 
@@ -230,7 +239,7 @@ export class CardsService {
       this.historyRepository.create({
         cardId, userId,
         action: HistoryAction.TAG_ADDED,
-        description: `Tag "${dto.name}" added`,
+        description: `Tag "${dto.name}" adicionada`,
       }),
     );
 
@@ -270,7 +279,7 @@ export class CardsService {
       this.historyRepository.create({
         cardId, userId,
         action: HistoryAction.ATTACHMENT_ADDED,
-        description: `Attached "${file.originalname}"`,
+        description: `Arquivo "${file.originalname}" anexado`,
       }),
     );
 
@@ -292,6 +301,72 @@ export class CardsService {
 
     await this.attachmentRepository.remove(attachment);
     return { message: 'Attachment deleted' };
+  }
+
+  // ── Assignees ─────────────────────────────────────────────────────────────
+
+  async addAssignee(cardId: string, userId: string, actorId: string): Promise<Card> {
+    const card = await this.cardRepository.findOne({
+      where: { id: cardId },
+      relations: ['assignees'],
+    });
+    if (!card) throw new NotFoundException('Card not found');
+    if (!await this.canAccessBoard(card.boardId, actorId)) throw new ForbiddenException();
+    if (!await this.canAccessBoard(card.boardId, userId)) {
+      throw new ForbiddenException('User is not a board member');
+    }
+
+    if (card.assignees.some((a) => a.id === userId)) return card;
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    card.assignees = [...card.assignees, user];
+    const saved = await this.cardRepository.save(card);
+
+    await this.historyRepository.save(
+      this.historyRepository.create({
+        cardId, userId: actorId,
+        action: HistoryAction.ASSIGNED,
+        description: `${user.name} adicionado como responsável`,
+      }),
+    );
+
+    this.boardGateway.notifyBoardUpdated(card.boardId, 'card-updated');
+
+    void this.notificationsService.create(userId, 'card_assigned', {
+      cardId: saved.id,
+      cardTitle: saved.title,
+      boardId: saved.boardId,
+    });
+
+    return saved;
+  }
+
+  async removeAssignee(cardId: string, userId: string, actorId: string): Promise<Card> {
+    const card = await this.cardRepository.findOne({
+      where: { id: cardId },
+      relations: ['assignees'],
+    });
+    if (!card) throw new NotFoundException('Card not found');
+    if (!await this.canAccessBoard(card.boardId, actorId)) throw new ForbiddenException();
+
+    const target = card.assignees.find((a) => a.id === userId);
+    if (!target) return card;
+
+    card.assignees = card.assignees.filter((a) => a.id !== userId);
+    const saved = await this.cardRepository.save(card);
+
+    await this.historyRepository.save(
+      this.historyRepository.create({
+        cardId, userId: actorId,
+        action: HistoryAction.UNASSIGNED,
+        description: `${target.name} removido dos responsáveis`,
+      }),
+    );
+
+    this.boardGateway.notifyBoardUpdated(card.boardId, 'card-updated');
+    return saved;
   }
 
   // ── Access helper ─────────────────────────────────────────────────────────

@@ -11,7 +11,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { useCards, useCreateCard, useUpdateCard, useDeleteCard, useReorderCards } from '@/hooks/useCards';
@@ -21,10 +21,16 @@ interface KanbanBoardProps {
   boardId: string;
   onEditCard: (card: Card) => void;
   filterText?: string;
+  filterUserId?: string;
 }
 
-export function KanbanBoard({ boardId, onEditCard, filterText = '' }: KanbanBoardProps) {
-  const { data: cards = [] } = useCards(boardId);
+export function KanbanBoard({ boardId, onEditCard, filterText = '', filterUserId = '' }: KanbanBoardProps) {
+  const { data: rawCards = [] } = useCards(boardId);
+  const cards = useMemo(() => {
+    const map = new Map<string, Card>();
+    for (const c of rawCards) if (!map.has(c.id)) map.set(c.id, c);
+    return Array.from(map.values());
+  }, [rawCards]);
   const createCard = useCreateCard(boardId);
   const updateCard = useUpdateCard(boardId);
   const deleteCard = useDeleteCard(boardId);
@@ -37,9 +43,26 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '' }: KanbanBoar
   );
 
   const needle = filterText.toLowerCase();
-  const visibleCards = needle
-    ? cards.filter((c) => c.title.toLowerCase().includes(needle))
-    : cards;
+  const visibleCards = cards.filter((c) => {
+    if (needle) {
+      const matchesTitle    = c.title.toLowerCase().includes(needle);
+      const matchesAssignee = c.assignees?.some((a) =>
+        a.name.toLowerCase().includes(needle),
+      );
+      if (!matchesTitle && !matchesAssignee) return false;
+    }
+    if (filterUserId === '__none__') {
+      return (!c.assignees || c.assignees.length === 0) && !c.assignedToId;
+    }
+    if (filterUserId) {
+      return (
+        c.assignees?.some((a) => a.id === filterUserId) ||
+        c.assignedToId === filterUserId ||
+        c.assignedTo?.id === filterUserId
+      );
+    }
+    return true;
+  });
 
   const byStatus = COLUMN_CONFIG.reduce(
     (acc, col) => {

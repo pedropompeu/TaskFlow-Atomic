@@ -46,6 +46,7 @@ export interface Card {
   priority: CardPriority;
   assignedTo: User | null;
   assignedToId: string | null;
+  assignees: User[];
   dueDate: string | null;
   position: number;
   tags: CardTag[];
