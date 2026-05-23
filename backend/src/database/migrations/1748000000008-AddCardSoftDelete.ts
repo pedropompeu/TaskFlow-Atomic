@@ -13,10 +13,10 @@ export class AddCardSoftDelete1748000000008 implements MigrationInterface {
     );
 
     await queryRunner.query(
-      `ALTER TYPE card_history_action_enum ADD VALUE IF NOT EXISTS 'deleted'`,
+      `ALTER TYPE history_action_enum ADD VALUE IF NOT EXISTS 'deleted'`,
     );
     await queryRunner.query(
-      `ALTER TYPE card_history_action_enum ADD VALUE IF NOT EXISTS 'restored'`,
+      `ALTER TYPE history_action_enum ADD VALUE IF NOT EXISTS 'restored'`,
     );
   }
 
