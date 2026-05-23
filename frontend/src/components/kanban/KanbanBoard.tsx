@@ -14,6 +14,7 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useMemo, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { useCards, useCreateCard, useUpdateCard, useDeleteCard, useReorderCards } from '@/hooks/useCards';
@@ -45,6 +46,7 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '', filterUserId
   const deleteCard = useDeleteCard(boardId);
   const reorderCards = useReorderCards(boardId);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -137,11 +139,54 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '', filterUserId
             onCreateCard={(title) =>
               createCard.mutate({ title, status: col.status })
             }
-            onDeleteCard={(id) => deleteCard.mutate(id)}
+            onDeleteCard={(id) => setPendingDeleteId(id)}
             onEditCard={onEditCard}
           />
         ))}
       </div>
+
+      {/* Dialog de confirmação de exclusão */}
+      {pendingDeleteId && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setPendingDeleteId(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertTriangle size={18} className="text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-stone-900">Excluir card?</h3>
+                <p className="text-sm text-stone-500 mt-1">
+                  O card ficará na lixeira por 7 dias antes de ser apagado permanentemente.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setPendingDeleteId(null)}
+                className="px-4 py-2 text-sm font-medium text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  deleteCard.mutate(pendingDeleteId);
+                  setPendingDeleteId(null);
+                }}
+                disabled={deleteCard.isPending}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Card flutuante durante o arrasto */}
       <DragOverlay dropAnimation={{ duration: 180, easing: 'ease' }}>

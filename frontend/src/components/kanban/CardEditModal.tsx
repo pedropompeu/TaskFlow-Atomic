@@ -9,10 +9,12 @@ import {
   Calendar,
   Check,
   Clock,
+  MessageSquare,
   Paperclip,
   Pencil,
   Plus,
   PlusCircle,
+  Send,
   Tag,
   Trash2,
   Upload,
@@ -26,6 +28,8 @@ import { api } from '@/lib/api';
 import { cardsApi } from '@/lib/cards';
 import { cardsKey, useAddAssignee, useRemoveAssignee } from '@/hooks/useCards';
 import { useMembers } from '@/hooks/useMembers';
+import { useCreateComment, useDeleteComment } from '@/hooks/useComments';
+import { useMe } from '@/hooks/useMe';
 import { cn } from '@/lib/utils';
 import { PRIORITY_META, type Card, type CardPriority } from '@/types';
 
@@ -73,6 +77,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('#6B7280');
   const [descSaveState, setDescSaveState] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [newComment, setNewComment] = useState('');
 
   const { data: detail = card } = useQuery({
     queryKey: ['card', card.id],
@@ -83,6 +88,9 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const { data: members } = useMembers(boardId);
   const addAssignee = useAddAssignee(boardId);
   const removeAssignee = useRemoveAssignee(boardId);
+  const createComment = useCreateComment(card.id, boardId);
+  const deleteComment = useDeleteComment(card.id, boardId);
+  const { data: me } = useMe();
 
   const allMembers = members ? [members.owner, ...members.members] : [];
   const assignedIds = new Set(detail.assignees?.map((a) => a.id) ?? []);
@@ -151,6 +159,12 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   }
 
   const descriptionDirty = description !== (detail.description ?? '');
+
+  function handleSubmitComment() {
+    const text = newComment.trim();
+    if (!text || createComment.isPending) return;
+    createComment.mutate(text, { onSuccess: () => setNewComment('') });
+  }
 
   return (
     <motion.div
@@ -471,6 +485,82 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Comments */}
+        <div className="border-t border-stone-100 px-6 py-4">
+          <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+            <MessageSquare size={11} /> Comentários
+            {(detail.comments?.length ?? 0) > 0 && (
+              <span className="ml-1 text-stone-400 font-normal normal-case">
+                ({detail.comments.length})
+              </span>
+            )}
+          </h4>
+
+          {/* Input */}
+          <div className="flex gap-2 mb-4">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.ctrlKey) handleSubmitComment();
+              }}
+              placeholder="Adicionar comentário… (Ctrl+Enter para enviar)"
+              rows={2}
+              className="flex-1 px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+            />
+            <button
+              onClick={handleSubmitComment}
+              disabled={!newComment.trim() || createComment.isPending}
+              className="self-end p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-40 transition-colors shrink-0"
+              aria-label="Enviar comentário"
+            >
+              <Send size={14} />
+            </button>
+          </div>
+
+          {/* List */}
+          {!detail.comments?.length ? (
+            <p className="text-sm text-stone-400 text-center py-2">Nenhum comentário ainda</p>
+          ) : (
+            <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
+              {detail.comments.map((comment) => (
+                <div key={comment.id} className="flex items-start gap-2.5 group">
+                  <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-[10px] font-bold text-orange-600">
+                      {comment.user?.name?.[0]?.toUpperCase() ?? '?'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xs font-semibold text-stone-700">
+                        {comment.user?.name}
+                      </span>
+                      <span className="text-xs text-stone-400">
+                        {formatDistanceToNow(parseISO(comment.createdAt), {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-stone-700 mt-0.5 whitespace-pre-wrap break-words">
+                      {comment.content}
+                    </p>
+                  </div>
+                  {(me?.id === comment.userId || me?.id === members?.owner?.id) && (
+                    <button
+                      onClick={() => deleteComment.mutate(comment.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-stone-400 hover:text-red-500 transition-all shrink-0 mt-0.5"
+                      aria-label="Excluir comentário"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* History — sempre visível */}

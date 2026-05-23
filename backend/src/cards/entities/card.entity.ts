@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   ManyToMany,
   OneToMany,
@@ -16,6 +17,7 @@ import { User } from '../../users/entities/user.entity';
 import { CardHistory } from './card-history.entity';
 import { CardTag } from './card-tag.entity';
 import { Attachment } from './attachment.entity';
+import { CardComment } from './card-comment.entity';
 import { CardStatus, CardPriority } from './card-enums';
 
 export { CardStatus, CardPriority };
@@ -87,6 +89,9 @@ export class Card {
   @OneToMany(() => Attachment, (attachment) => attachment.card, { cascade: true })
   attachments: Attachment[];
 
+  @OneToMany(() => CardComment, (comment) => comment.card, { cascade: true })
+  comments: CardComment[];
+
   @ManyToMany(() => User)
   @JoinTable({
     name: 'card_assignees',
@@ -106,4 +111,7 @@ export class Card {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 }

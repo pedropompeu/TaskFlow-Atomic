@@ -23,4 +23,8 @@ export const cardsApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  listTrashed: (boardId: string) =>
+    api.get<Card[]>(`/boards/${boardId}/trash`).then((r) => r.data),
+  restore: (id: string) =>
+    api.post<Card>(`/cards/${id}/restore`).then((r) => r.data),
 };

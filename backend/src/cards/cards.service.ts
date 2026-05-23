@@ -10,12 +10,14 @@ import { Card } from './entities/card.entity';
 import { CardHistory, HistoryAction } from './entities/card-history.entity';
 import { CardTag } from './entities/card-tag.entity';
 import { Attachment } from './entities/attachment.entity';
+import { CardComment } from './entities/card-comment.entity';
 import { Board } from '../boards/entities/board.entity';
 import { BoardMember } from '../boards/entities/board-member.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { AddTagDto } from './dto/add-tag.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { EmailService } from '../email/email.service';
 import { BoardGateway } from './board.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -38,6 +40,8 @@ export class CardsService {
     private readonly tagRepository: Repository<CardTag>,
     @InjectRepository(Attachment)
     private readonly attachmentRepository: Repository<Attachment>,
+    @InjectRepository(CardComment)
+    private readonly commentRepository: Repository<CardComment>,
     @InjectRepository(Board)
     private readonly boardRepository: Repository<Board>,
     @InjectRepository(BoardMember)
@@ -96,8 +100,10 @@ export class CardsService {
         'attachments.uploadedBy',
         'history',
         'history.user',
+        'comments',
+        'comments.user',
       ],
-      order: { history: { createdAt: 'DESC' } },
+      order: { history: { createdAt: 'DESC' }, comments: { createdAt: 'ASC' } },
     });
     if (!card) throw new NotFoundException('Card not found');
     return card;
@@ -193,21 +199,90 @@ export class CardsService {
     return saved;
   }
 
-  // ── Delete ────────────────────────────────────────────────────────────────
+  // ── Delete (soft) ─────────────────────────────────────────────────────────
 
   async remove(id: string, userId: string): Promise<{ message: string }> {
+    const card = await this.cardRepository.findOne({ where: { id } });
+    if (!card) throw new NotFoundException('Card not found');
+    if (!await this.canAccessBoard(card.boardId, userId)) throw new ForbiddenException();
+
+    await this.historyRepository.save(
+      this.historyRepository.create({
+        cardId: id,
+        userId,
+        action: HistoryAction.DELETED,
+        description: 'Card movido para a lixeira',
+      }),
+    );
+
+    await this.cardRepository.softDelete(id);
+    this.boardGateway.notifyBoardUpdated(card.boardId, 'card-deleted');
+    return { message: 'Card moved to trash' };
+  }
+
+  async findTrashed(boardId: string, userId: string): Promise<Card[]> {
+    if (!await this.canAccessBoard(boardId, userId)) throw new ForbiddenException();
+    return this.cardRepository.find({
+      where: { boardId },
+      withDeleted: true,
+      relations: ['assignees', 'tags'],
+      order: { deletedAt: 'DESC' },
+    }).then((cards) => cards.filter((c) => c.deletedAt !== null));
+  }
+
+  async restore(id: string, userId: string): Promise<Card> {
     const card = await this.cardRepository.findOne({
       where: { id },
-      relations: ['board'],
+      withDeleted: true,
     });
     if (!card) throw new NotFoundException('Card not found');
-    if (!await this.canAccessBoard(card.boardId, userId)) {
-      throw new ForbiddenException();
-    }
-    const boardId = card.boardId;
-    await this.cardRepository.remove(card);
-    this.boardGateway.notifyBoardUpdated(boardId, 'card-deleted');
-    return { message: 'Card deleted' };
+    if (!card.deletedAt) throw new ForbiddenException('Card is not in trash');
+    if (!await this.canAccessBoard(card.boardId, userId)) throw new ForbiddenException();
+
+    await this.cardRepository.restore(id);
+
+    await this.historyRepository.save(
+      this.historyRepository.create({
+        cardId: id,
+        userId,
+        action: HistoryAction.RESTORED,
+        description: 'Card restaurado da lixeira',
+      }),
+    );
+
+    this.boardGateway.notifyBoardUpdated(card.boardId, 'card-restored');
+    return this.cardRepository.findOne({ where: { id }, relations: ['assignees', 'tags'] });
+  }
+
+  // ── Comments ──────────────────────────────────────────────────────────────
+
+  async createComment(cardId: string, dto: CreateCommentDto, userId: string): Promise<CardComment> {
+    const card = await this.cardRepository.findOne({ where: { id: cardId } });
+    if (!card) throw new NotFoundException('Card not found');
+    if (!await this.canAccessBoard(card.boardId, userId)) throw new ForbiddenException();
+
+    const comment = await this.commentRepository.save(
+      this.commentRepository.create({ cardId, userId, content: dto.content }),
+    );
+
+    this.boardGateway.notifyBoardUpdated(card.boardId, 'comment-updated');
+    return this.commentRepository.findOne({ where: { id: comment.id }, relations: ['user'] });
+  }
+
+  async deleteComment(commentId: string, userId: string): Promise<{ message: string }> {
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+      relations: ['card'],
+    });
+    if (!comment) throw new NotFoundException('Comment not found');
+
+    const board = await this.boardRepository.findOne({ where: { id: comment.card.boardId } });
+    const isOwner = board?.ownerId === userId;
+    if (comment.userId !== userId && !isOwner) throw new ForbiddenException();
+
+    await this.commentRepository.remove(comment);
+    this.boardGateway.notifyBoardUpdated(comment.card.boardId, 'comment-updated');
+    return { message: 'Comment deleted' };
   }
 
   // ── Reorder ───────────────────────────────────────────────────────────────

@@ -105,3 +105,24 @@ export function useRemoveAssignee(boardId: string) {
     },
   });
 }
+
+export const trashKey = (boardId: string) => ['trash', boardId] as const;
+
+export function useTrash(boardId: string) {
+  return useQuery({
+    queryKey: trashKey(boardId),
+    queryFn: () => cardsApi.listTrashed(boardId),
+    enabled: !!boardId,
+  });
+}
+
+export function useRestoreCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => cardsApi.restore(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: cardsKey(boardId) });
+      qc.invalidateQueries({ queryKey: trashKey(boardId) });
+    },
+  });
+}

@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, X, Users } from 'lucide-react';
+import { ArrowLeft, Search, X, Users, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { CardEditModal } from '@/components/kanban/CardEditModal';
 import { BoardMembersPanel } from '@/components/kanban/BoardMembersPanel';
+import { TrashPanel } from '@/components/kanban/TrashPanel';
 import { BoardCoverPicker } from '@/components/kanban/BoardCoverPicker';
 import { boardsApi } from '@/lib/boards';
+import { useTrash } from '@/hooks/useCards';
 import { useBoardSocket } from '@/hooks/useBoardSocket';
 import { useMe } from '@/hooks/useMe';
 import { useMembers } from '@/hooks/useMembers';
@@ -41,6 +43,8 @@ export default function BoardPage() {
   const [filterText, setFilterText] = useState('');
   const [filterUserId, setFilterUserId] = useState('');
   const [showMembers, setShowMembers] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
+  const { data: trashed = [] } = useTrash(boardId);
   const { onlineUsers } = useBoardSocket(boardId);
   const { data: me } = useMe();
   const { data: members } = useMembers(boardId);
@@ -131,6 +135,21 @@ export default function BoardPage() {
           hasCover={hasCover}
         />
 
+        {/* Botão Lixeira */}
+        <button
+          onClick={() => setShowTrash(true)}
+          className="relative flex items-center gap-1.5 px-3 py-1.5 text-sm text-atomic-gray-600 hover:text-atomic-dark border border-atomic-gray-300/50 hover:border-atomic-gray-300 bg-white/70 hover:bg-white rounded-lg transition-all"
+          aria-label="Lixeira"
+        >
+          <Trash2 size={14} />
+          <span className="hidden xs:inline">Lixeira</span>
+          {trashed.length > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              {trashed.length > 9 ? '9+' : trashed.length}
+            </span>
+          )}
+        </button>
+
         {/* Botão Membros */}
         <button
           onClick={() => setShowMembers(true)}
@@ -200,6 +219,13 @@ export default function BoardPage() {
             currentUserId={me.id}
             isOwner={isOwner}
             onClose={() => setShowMembers(false)}
+          />
+        )}
+        {showTrash && (
+          <TrashPanel
+            key="trash-panel"
+            boardId={boardId}
+            onClose={() => setShowTrash(false)}
           />
         )}
       </AnimatePresence>

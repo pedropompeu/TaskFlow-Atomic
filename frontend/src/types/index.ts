@@ -15,6 +15,15 @@ export interface CardTag {
   color: string;
 }
 
+export interface CardComment {
+  id: string;
+  cardId: string;
+  userId: string;
+  user: User;
+  content: string;
+  createdAt: string;
+}
+
 export interface CardHistoryEntry {
   id: string;
   userId: string;
@@ -53,8 +62,10 @@ export interface Card {
   tags: CardTag[];
   history: CardHistoryEntry[];
   attachments: Attachment[];
+  comments: CardComment[];
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
 }
 
 export interface Board {

@@ -21,6 +21,8 @@ export enum HistoryAction {
   TAG_ADDED = 'tag_added',
   TAG_REMOVED = 'tag_removed',
   DUE_DATE_SET = 'due_date_set',
+  DELETED = 'deleted',
+  RESTORED = 'restored',
 }
 
 @Entity('card_history')

@@ -18,6 +18,7 @@ import { UpdateCardDto } from './dto/update-card.dto';
 import { ReorderCardsDto } from './dto/reorder-cards.dto';
 import { AddTagDto } from './dto/add-tag.dto';
 import { AddAssigneeDto } from './dto/add-assignee.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
@@ -123,5 +124,47 @@ export class CardsController {
     @CurrentUser() user: User,
   ) {
     return this.cardsService.removeAssignee(id, userId, user.id);
+  }
+
+  // ── Trash ─────────────────────────────────────────────────────────────────
+
+  @Get('boards/:boardId/trash')
+  @ApiOperation({ summary: 'List soft-deleted cards for a board' })
+  findTrashed(
+    @Param('boardId', ParseUUIDPipe) boardId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.cardsService.findTrashed(boardId, user.id);
+  }
+
+  @Post('cards/:id/restore')
+  @ApiOperation({ summary: 'Restore a card from trash' })
+  restore(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.cardsService.restore(id, user.id);
+  }
+
+  // ── Comments ──────────────────────────────────────────────────────────────
+
+  @Post('cards/:id/comments')
+  @ApiOperation({ summary: 'Add a comment to a card' })
+  createComment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CreateCommentDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.cardsService.createComment(id, dto, user.id);
+  }
+
+  @Delete('cards/:id/comments/:commentId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a comment (own comment or board owner)' })
+  deleteComment(
+    @Param('commentId', ParseUUIDPipe) commentId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.cardsService.deleteComment(commentId, user.id);
   }
 }

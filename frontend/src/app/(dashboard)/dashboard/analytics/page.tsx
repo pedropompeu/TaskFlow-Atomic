@@ -10,13 +10,14 @@ import {
   LineChart, Line,
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { format, subDays, parseISO } from 'date-fns';
+import { format, formatDistanceToNow, subDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  AlertTriangle, Calendar, TrendingUp, TrendingDown,
-  LayoutGrid, ArrowRight, Minus,
+  AlertTriangle, ArrowRightLeft, Calendar, Clock, LayoutGrid,
+  PlusCircle, Tag, TrendingDown, TrendingUp, Trash2, ArrowRight, Minus,
+  UserCheck, UserMinus, Pencil, Paperclip, RotateCcw,
 } from 'lucide-react';
-import { analyticsApi } from '@/lib/analytics';
+import { analyticsApi, type ActivityEvent } from '@/lib/analytics';
 import { boardsApi } from '@/lib/boards';
 import { COLUMN_CONFIG } from '@/types';
 import { cn } from '@/lib/utils';
@@ -103,9 +104,31 @@ function Empty() {
   return <p className="text-sm text-atomic-gray-500/70 text-center py-10">Sem dados no período</p>;
 }
 
+/* ─── Activity Feed helpers ─────────────────────────────────────────────── */
+function ActivityIcon({ action }: { action: string }) {
+  const cls = 'shrink-0';
+  switch (action) {
+    case 'created':          return <PlusCircle    size={13} className={cn(cls, 'text-green-500')} />;
+    case 'moved':            return <ArrowRightLeft size={13} className={cn(cls, 'text-blue-500')} />;
+    case 'assigned':         return <UserCheck      size={13} className={cn(cls, 'text-atomic-orange')} />;
+    case 'unassigned':       return <UserMinus      size={13} className={cn(cls, 'text-stone-400')} />;
+    case 'updated':          return <Pencil         size={13} className={cn(cls, 'text-stone-500')} />;
+    case 'attachment_added': return <Paperclip      size={13} className={cn(cls, 'text-stone-500')} />;
+    case 'tag_added':        return <Tag            size={13} className={cn(cls, 'text-purple-500')} />;
+    case 'tag_removed':      return <Tag            size={13} className={cn(cls, 'text-stone-400')} />;
+    case 'due_date_set':     return <Calendar       size={13} className={cn(cls, 'text-atomic-orange')} />;
+    case 'deleted':          return <Trash2         size={13} className={cn(cls, 'text-red-500')} />;
+    case 'restored':         return <RotateCcw      size={13} className={cn(cls, 'text-green-600')} />;
+    default:                 return <div className="w-2 h-2 rounded-full bg-stone-300" />;
+  }
+}
+
 /* ─── Page ──────────────────────────────────────────────────────────────── */
+type Tab = 'dashboard' | 'activity';
+
 export default function AnalyticsPage() {
   const router = useRouter();
+  const [tab, setTab]             = useState<Tab>('dashboard');
   const [boardId, setBoardId]     = useState('');
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
   const [endDate, setEndDate]     = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -115,6 +138,12 @@ export default function AnalyticsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['analytics', boardId, startDate, endDate],
     queryFn: () => analyticsApi.getSummary({ boardId: boardId || undefined, startDate, endDate }),
+  });
+
+  const { data: activityEvents = [], isLoading: activityLoading } = useQuery({
+    queryKey: ['analytics-activity', boardId, startDate, endDate],
+    queryFn: () => analyticsApi.getActivity({ boardId: boardId || undefined, startDate, endDate, limit: 100 }),
+    enabled: tab === 'activity',
   });
 
   const kpis     = data?.kpis;
@@ -164,7 +193,69 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {isLoading ? (
+      {/* ── Tabs ── */}
+      <div className="flex gap-1 border-b border-atomic-gray-300/30">
+        {([['dashboard', 'Dashboard', <LayoutGrid size={13} />], ['activity', 'Atividade', <Clock size={13} />]] as const).map(
+          ([id, label, icon]) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={cn(
+                'flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
+                tab === id
+                  ? 'border-atomic-orange text-atomic-orange'
+                  : 'border-transparent text-atomic-gray-500 hover:text-atomic-dark',
+              )}
+            >
+              {icon}{label}
+            </button>
+          ),
+        )}
+      </div>
+
+      {/* ── Activity Tab ── */}
+      {tab === 'activity' && (
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-atomic-gray-300/20 p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-atomic-dark/80 mb-4 flex items-center gap-2">
+            <Clock size={14} className="text-atomic-orange" />
+            Histórico de Atividades
+          </h3>
+          {activityLoading ? (
+            <div className="space-y-3">
+              {[1,2,3,4,5].map((i) => (
+                <div key={i} className="h-10 bg-stone-100 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : activityEvents.length === 0 ? (
+            <Empty />
+          ) : (
+            <div className="space-y-1">
+              {activityEvents.map((event: ActivityEvent) => (
+                <div
+                  key={event.id}
+                  className="flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 transition-colors"
+                >
+                  <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <ActivityIcon action={event.action} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-stone-700 leading-snug">
+                      <span className="font-semibold">{event.userName}</span>
+                      {event.description ? ` — ${event.description}` : ''}
+                    </p>
+                    <p className="text-xs text-stone-400 mt-0.5 truncate">
+                      {event.cardTitle} ·{' '}
+                      {formatDistanceToNow(parseISO(event.createdAt), { addSuffix: true, locale: ptBR })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'dashboard' && (isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-pulse">
           {[1, 2, 3].map((i) => <div key={i} className="h-28 bg-atomic-ice rounded-xl" />)}
         </div>
@@ -359,7 +450,7 @@ export default function AnalyticsPage() {
             )}
           </div>
         </>
-      )}
+      ))}
     </div>
   );
 }

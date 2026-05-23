@@ -1,13 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Card, CardStatus } from '../cards/entities/card.entity';
+import { CardHistory } from '../cards/entities/card-history.entity';
+import { Board } from '../boards/entities/board.entity';
+import { BoardMember } from '../boards/entities/board-member.entity';
 
 @Injectable()
 export class AnalyticsService {
   constructor(
     @InjectRepository(Card)
     private readonly cardRepo: Repository<Card>,
+    @InjectRepository(CardHistory)
+    private readonly historyRepo: Repository<CardHistory>,
+    @InjectRepository(Board)
+    private readonly boardRepo: Repository<Board>,
+    @InjectRepository(BoardMember)
+    private readonly boardMemberRepo: Repository<BoardMember>,
   ) {}
 
   async getSummary(boardId?: string, startDate?: string, endDate?: string) {
@@ -109,6 +118,55 @@ export class AnalyticsService {
 
     if (boardId) qb.andWhere('c.board_id = :boardId', { boardId });
     return qb.getMany();
+  }
+
+  async getActivityFeed(
+    userId: string,
+    boardId?: string,
+    startDate?: string,
+    endDate?: string,
+    limit = 50,
+  ) {
+    if (boardId && !await this.canAccessBoard(boardId, userId)) {
+      throw new ForbiddenException();
+    }
+
+    const qb = this.historyRepo
+      .createQueryBuilder('h')
+      .innerJoin('h.card', 'c')
+      .innerJoin('h.user', 'u')
+      .select([
+        'h.id          AS id',
+        'h.action      AS action',
+        'h.description AS description',
+        'h.created_at  AS "createdAt"',
+        'c.id          AS "cardId"',
+        'c.title       AS "cardTitle"',
+        'u.id          AS "userId"',
+        'u.name        AS "userName"',
+      ])
+      .orderBy('h.created_at', 'DESC')
+      .limit(limit);
+
+    if (boardId) {
+      qb.where('c.board_id = :boardId', { boardId });
+    }
+    if (startDate) {
+      qb.andWhere('h.created_at >= :startDate', { startDate });
+    }
+    if (endDate) {
+      qb.andWhere('h.created_at <= :endDate', { endDate: endDate + ' 23:59:59' });
+    }
+
+    return qb.getRawMany();
+  }
+
+  private async canAccessBoard(boardId: string, userId: string): Promise<boolean> {
+    const board = await this.boardRepo.findOne({ where: { id: boardId } });
+    if (!board) return false;
+    if (board.ownerId === userId) return true;
+    const member = await this.boardMemberRepo.findOne({ where: { boardId, userId } });
+    return !!member;
   }
 
   private async getCompletionsOverTime(boardId?: string, startDate?: string, endDate?: string) {

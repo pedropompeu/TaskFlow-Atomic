@@ -58,7 +58,7 @@ test.describe('Cards', () => {
     await expect(page.getByText(cardB)).not.toBeVisible();
   });
 
-  test('exclui um card', async ({ page }) => {
+  test('exclui um card (com confirmação)', async ({ page }) => {
     const cardTitle = `Card Del ${Date.now()}`;
     await page.getByPlaceholder(/novo card|título/i).first().fill(cardTitle);
     await page.keyboard.press('Enter');
@@ -66,6 +66,34 @@ test.describe('Cards', () => {
     const cardEl = page.locator(`text=${cardTitle}`).locator('..');
     await cardEl.hover();
     await cardEl.getByRole('button', { name: /excluir card/i }).click();
+    // Confirmar no dialog
+    await page.getByRole('button', { name: /^Excluir$/i }).click();
     await expect(page.getByText(cardTitle)).not.toBeVisible({ timeout: 5000 });
+  });
+
+  test('adiciona um comentário no card, verifica e exclui', async ({ page }) => {
+    const cardTitle = `Card Comentário ${Date.now()}`;
+    const commentText = `Comentário E2E ${Date.now()}`;
+
+    // Cria o card
+    await page.getByPlaceholder(/novo card|título/i).first().fill(cardTitle);
+    await page.keyboard.press('Enter');
+    await page.waitForSelector(`text=${cardTitle}`);
+
+    // Abre o modal
+    await page.getByText(cardTitle).click();
+    await page.waitForSelector('textarea[placeholder*="comentário"]', { timeout: 5000 });
+
+    // Digita e envia comentário
+    await page.locator('textarea[placeholder*="comentário"]').fill(commentText);
+    await page.getByRole('button', { name: /enviar comentário/i }).click();
+
+    // Verifica que o comentário apareceu
+    await expect(page.getByText(commentText)).toBeVisible({ timeout: 5000 });
+
+    // Exclui o comentário
+    await page.getByText(commentText).locator('..').locator('..').hover();
+    await page.getByLabel(/excluir comentário/i).click();
+    await expect(page.getByText(commentText)).not.toBeVisible({ timeout: 5000 });
   });
 });
