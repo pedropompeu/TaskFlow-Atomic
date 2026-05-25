@@ -50,3 +50,6 @@ backend/uploads/*
 # Misc
 *.log
 .cache/
+
+# Brand — gerado internamente, nunca commitar
+BRAND.md
