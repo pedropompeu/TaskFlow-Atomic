@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { ChevronDown, Menu, X, Zap } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 
 const NAV_ITEMS = [
   {
@@ -86,15 +86,8 @@ export function Header() {
           })}
         </nav>
 
-        {/* CTA + burger */}
-        <div className="flex items-center gap-3">
-          <a
-            href="#"
-            className="hidden md:inline-flex items-center gap-2 bg-brand-accent text-brand-accent-fg font-heading font-bold text-xs rounded-lg px-5 py-2 hover:bg-brand-accent-hover transition-colors"
-          >
-            <Zap size={12} className="fill-white" />
-            SEJA EXTRAORDINÁRIO
-          </a>
+        {/* Burger mobile */}
+        <div className="flex items-center">
           <button
             className="md:hidden p-1.5 text-white/80 hover:text-white transition-colors"
             onClick={() => setMobileOpen((v) => !v)}
@@ -146,15 +139,6 @@ export function Header() {
               );
             })}
           </ul>
-          <div className="px-5 py-4 border-t border-white/10">
-            <a
-              href="#"
-              className="flex items-center justify-center gap-2 bg-brand-accent text-brand-accent-fg font-heading font-bold text-sm rounded-lg px-6 py-3 w-full hover:bg-brand-accent-hover transition-colors"
-            >
-              <Zap size={13} className="fill-white" />
-              SEJA EXTRAORDINÁRIO
-            </a>
-          </div>
         </div>
       )}
     </header>
