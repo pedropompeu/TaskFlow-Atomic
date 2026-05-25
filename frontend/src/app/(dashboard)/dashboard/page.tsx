@@ -37,7 +37,7 @@ export default function DashboardPage() {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-36 bg-atomic-gray-300/40 rounded-xl" />
+          <div key={i} className="h-36 bg-brand-surface rounded-xl" />
         ))}
       </div>
     );
@@ -46,10 +46,10 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-atomic-dark">Meus Quadros</h2>
+        <h2 className="text-xl font-bold text-brand-text-primary">Meus Quadros</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-atomic-orange text-white text-sm font-medium rounded-lg btn-glow-orange"
+          className="flex items-center gap-2 px-4 py-2 bg-brand-accent text-brand-accent-fg text-sm font-medium rounded-lg hover:bg-brand-accent-hover transition-colors"
         >
           <Plus size={16} />
           Novo Quadro
@@ -59,37 +59,37 @@ export default function DashboardPage() {
       {showForm && (
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mb-6 bg-white border border-atomic-gray-300/40 rounded-xl p-4 space-y-3 shadow-sm"
+          className="mb-6 bg-brand-surface border border-brand-border rounded-xl p-4 space-y-3"
         >
-          <h3 className="text-sm font-semibold text-atomic-dark/70">Novo quadro</h3>
+          <h3 className="text-sm font-semibold text-brand-text-secondary">Novo quadro</h3>
           <div>
             <input
               autoFocus
               {...register('title')}
               placeholder="Título do quadro"
-              className="w-full px-3 py-2 text-sm border border-atomic-gray-300/60 rounded-lg input-glow"
+              className="w-full px-3 py-2 text-sm bg-brand-surface-elevated border border-brand-border rounded-lg text-brand-text-primary placeholder-brand-text-muted focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent"
             />
             {errors.title && (
-              <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>
+              <p className="mt-1 text-xs text-brand-error">{errors.title.message}</p>
             )}
           </div>
           <input
             {...register('description')}
             placeholder="Descrição (opcional)"
-            className="w-full px-3 py-2 text-sm border border-atomic-gray-300/60 rounded-lg input-glow"
+            className="w-full px-3 py-2 text-sm bg-brand-surface-elevated border border-brand-border rounded-lg text-brand-text-primary placeholder-brand-text-muted focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent"
           />
           <div className="flex gap-2">
             <button
               type="submit"
               disabled={createBoard.isPending}
-              className="px-4 py-2 bg-atomic-orange text-white text-sm font-medium rounded-lg hover:bg-atomic-orange/90 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-brand-accent text-brand-accent-fg text-sm font-medium rounded-lg hover:bg-brand-accent-hover disabled:opacity-50 transition-colors"
             >
               {createBoard.isPending ? 'Criando…' : 'Criar'}
             </button>
             <button
               type="button"
               onClick={() => { reset(); setShowForm(false); }}
-              className="px-4 py-2 text-sm text-atomic-gray-600 hover:text-stone-800 transition-colors"
+              className="px-4 py-2 text-sm text-brand-text-secondary hover:text-brand-text-primary transition-colors"
             >
               Cancelar
             </button>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
       )}
 
       {boards.length === 0 ? (
-        <div className="text-center py-20 text-atomic-gray-500/70">
+        <div className="text-center py-20 text-brand-text-muted">
           <LayoutDashboard size={40} className="mx-auto mb-3 opacity-40" />
           <p className="text-sm">Nenhum quadro ainda. Crie o seu primeiro!</p>
         </div>
@@ -107,36 +107,46 @@ export default function DashboardPage() {
           {boards.map((board) => (
             <div
               key={board.id}
-              className="group relative bg-white/90 backdrop-blur-sm border border-atomic-gray-300/30 rounded-xl p-5 shadow-sm hover:border-atomic-orange/50 hover:shadow-[0_6px_24px_rgba(247,142,47,0.14)] hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+              className="group relative bg-brand-surface border border-brand-border-subtle rounded-xl overflow-hidden hover:border-brand-border hover:bg-brand-surface-elevated hover:-translate-y-0.5 transition-all duration-200 cursor-pointer shadow-brand-card hover:shadow-brand-card-hover"
               onClick={() => router.push(`/dashboard/${board.id}`)}
             >
-              {/* Accent top bar */}
-              <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl bg-gradient-to-r from-atomic-orange via-atomic-purple to-atomic-green opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-atomic-dark group-hover:text-atomic-orange transition-colors">
-                  {board.title}
-                </h3>
-                <button
-                  className="opacity-0 group-hover:opacity-100 text-atomic-gray-500/70 hover:text-red-500 transition-all"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteBoard.mutate(board.id);
-                  }}
-                  aria-label="Excluir quadro"
-                >
-                  <Trash2 size={15} />
-                </button>
+              {/* Accent top bar — sempre visível, intensifica no hover */}
+              <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-brand-accent/40 via-brand-accent to-brand-accent/40 opacity-50 group-hover:opacity-100 transition-opacity duration-300" />
+
+              {/* Decoração kanban — mini colunas fantasma */}
+              <div className="absolute bottom-3 right-4 flex items-end gap-1 opacity-[0.07] pointer-events-none select-none">
+                {[4, 6, 3, 5].map((h, i) => (
+                  <div key={i} className="w-[3px] rounded-full bg-brand-text-primary" style={{ height: `${h * 4}px` }} />
+                ))}
               </div>
-              {board.description && (
-                <p className="text-sm text-atomic-gray-500 mb-3 line-clamp-2">{board.description}</p>
-              )}
-              <p className="text-xs text-atomic-gray-500/70 mt-auto">
-                Criado{' '}
-                {formatDistanceToNow(parseISO(board.createdAt), {
-                  addSuffix: true,
-                  locale: ptBR,
-                })}
-              </p>
+
+              <div className="p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-brand-text-primary group-hover:text-brand-accent transition-colors leading-snug">
+                    {board.title}
+                  </h3>
+                  <button
+                    className="opacity-0 group-hover:opacity-100 text-brand-text-muted hover:text-brand-error transition-all shrink-0 ml-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteBoard.mutate(board.id);
+                    }}
+                    aria-label="Excluir quadro"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+                {board.description && (
+                  <p className="text-sm text-brand-text-secondary mb-3 line-clamp-2 leading-relaxed">{board.description}</p>
+                )}
+                <p className="text-xs text-brand-text-muted mt-auto">
+                  Criado{' '}
+                  {formatDistanceToNow(parseISO(board.createdAt), {
+                    addSuffix: true,
+                    locale: ptBR,
+                  })}
+                </p>
+              </div>
             </div>
           ))}
         </div>

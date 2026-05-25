@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Board } from './entities/board.entity';
 import { BoardMember } from './entities/board-member.entity';
+import { BoardTag } from './entities/board-tag.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
@@ -21,6 +22,8 @@ export class BoardsService {
     private readonly boardRepository: Repository<Board>,
     @InjectRepository(BoardMember)
     private readonly memberRepository: Repository<BoardMember>,
+    @InjectRepository(BoardTag)
+    private readonly boardTagRepository: Repository<BoardTag>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly notificationsService: NotificationsService,
@@ -157,6 +160,35 @@ export class BoardsService {
     if (board.ownerId === userId) return true;
     const m = await this.memberRepository.findOne({ where: { boardId, userId } });
     return !!m;
+  }
+
+  // ── Board Tags ────────────────────────────────────────────────────────────
+
+  async getBoardTags(boardId: string, userId: string): Promise<BoardTag[]> {
+    if (!await this.isMember(boardId, userId)) throw new ForbiddenException();
+    return this.boardTagRepository.find({
+      where: { boardId },
+      order: { name: 'ASC' },
+    });
+  }
+
+  async createBoardTag(boardId: string, name: string, color: string, userId: string): Promise<BoardTag> {
+    if (!await this.isMember(boardId, userId)) throw new ForbiddenException();
+    const existing = await this.boardTagRepository.findOne({ where: { boardId, name, color } });
+    if (existing) return existing;
+    return this.boardTagRepository.save(
+      this.boardTagRepository.create({ boardId, name, color }),
+    );
+  }
+
+  async deleteBoardTag(boardId: string, tagId: string, userId: string): Promise<{ message: string }> {
+    const board = await this.boardRepository.findOne({ where: { id: boardId } });
+    if (!board) throw new NotFoundException('Board not found');
+    if (board.ownerId !== userId) throw new ForbiddenException();
+    const tag = await this.boardTagRepository.findOne({ where: { id: tagId, boardId } });
+    if (!tag) throw new NotFoundException('Tag not found');
+    await this.boardTagRepository.remove(tag);
+    return { message: 'Board tag deleted' };
   }
 
   private async assertAccess(board: Board, userId: string): Promise<void> {

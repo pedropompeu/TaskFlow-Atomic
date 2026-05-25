@@ -9,14 +9,18 @@ import { existsSync, unlinkSync } from 'fs';
 import { Card } from './entities/card.entity';
 import { CardHistory, HistoryAction } from './entities/card-history.entity';
 import { CardTag } from './entities/card-tag.entity';
+import { ChecklistItem } from './entities/checklist-item.entity';
 import { Attachment } from './entities/attachment.entity';
 import { CardComment } from './entities/card-comment.entity';
 import { Board } from '../boards/entities/board.entity';
 import { BoardMember } from '../boards/entities/board-member.entity';
+import { BoardTag } from '../boards/entities/board-tag.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { AddTagDto } from './dto/add-tag.dto';
+import { CreateChecklistItemDto } from './dto/create-checklist-item.dto';
+import { UpdateChecklistItemDto } from './dto/update-checklist-item.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { EmailService } from '../email/email.service';
 import { BoardGateway } from './board.gateway';
@@ -42,10 +46,14 @@ export class CardsService {
     private readonly attachmentRepository: Repository<Attachment>,
     @InjectRepository(CardComment)
     private readonly commentRepository: Repository<CardComment>,
+    @InjectRepository(ChecklistItem)
+    private readonly checklistRepository: Repository<ChecklistItem>,
     @InjectRepository(Board)
     private readonly boardRepository: Repository<Board>,
     @InjectRepository(BoardMember)
     private readonly boardMemberRepository: Repository<BoardMember>,
+    @InjectRepository(BoardTag)
+    private readonly boardTagRepository: Repository<BoardTag>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly emailService: EmailService,
@@ -96,6 +104,7 @@ export class CardsService {
         'assignees',
         'createdBy',
         'tags',
+        'checklists',
         'attachments',
         'attachments.uploadedBy',
         'history',
@@ -103,7 +112,7 @@ export class CardsService {
         'comments',
         'comments.user',
       ],
-      order: { history: { createdAt: 'DESC' }, comments: { createdAt: 'ASC' } },
+      order: { history: { createdAt: 'DESC' }, comments: { createdAt: 'ASC' }, checklists: { position: 'ASC' } },
     });
     if (!card) throw new NotFoundException('Card not found');
     return card;
@@ -302,13 +311,21 @@ export class CardsService {
     const card = await this.cardRepository.findOne({ where: { id: cardId } });
     if (!card) throw new NotFoundException('Card not found');
 
+    const color = dto.color ?? '#6B7280';
+
     const tag = await this.tagRepository.save(
-      this.tagRepository.create({
-        cardId,
-        name: dto.name,
-        color: dto.color ?? '#6B7280',
-      }),
+      this.tagRepository.create({ cardId, name: dto.name, color }),
     );
+
+    // Upsert tag into board catalog (create if name+color combo doesn't exist yet)
+    const existing = await this.boardTagRepository.findOne({
+      where: { boardId: card.boardId, name: dto.name, color },
+    });
+    if (!existing) {
+      await this.boardTagRepository.save(
+        this.boardTagRepository.create({ boardId: card.boardId, name: dto.name, color }),
+      );
+    }
 
     await this.historyRepository.save(
       this.historyRepository.create({
@@ -442,6 +459,32 @@ export class CardsService {
 
     this.boardGateway.notifyBoardUpdated(card.boardId, 'card-updated');
     return saved;
+  }
+
+  // ── Checklist ─────────────────────────────────────────────────────────────
+
+  async createChecklistItem(cardId: string, dto: CreateChecklistItemDto): Promise<ChecklistItem> {
+    const card = await this.cardRepository.findOne({ where: { id: cardId } });
+    if (!card) throw new NotFoundException('Card not found');
+
+    const count = await this.checklistRepository.count({ where: { cardId } });
+    return this.checklistRepository.save(
+      this.checklistRepository.create({ cardId, text: dto.text, position: count }),
+    );
+  }
+
+  async updateChecklistItem(itemId: string, dto: UpdateChecklistItemDto): Promise<ChecklistItem> {
+    const item = await this.checklistRepository.findOne({ where: { id: itemId } });
+    if (!item) throw new NotFoundException('Checklist item not found');
+    Object.assign(item, dto);
+    return this.checklistRepository.save(item);
+  }
+
+  async deleteChecklistItem(itemId: string): Promise<{ message: string }> {
+    const item = await this.checklistRepository.findOne({ where: { id: itemId } });
+    if (!item) throw new NotFoundException('Checklist item not found');
+    await this.checklistRepository.remove(item);
+    return { message: 'Checklist item deleted' };
   }
 
   // ── Access helper ─────────────────────────────────────────────────────────

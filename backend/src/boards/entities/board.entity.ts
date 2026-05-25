@@ -11,6 +11,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Card } from '../../cards/entities/card.entity';
 import { BoardMember } from './board-member.entity';
+import { BoardTag } from './board-tag.entity';
 
 @Entity('boards')
 export class Board {
@@ -35,6 +36,9 @@ export class Board {
 
   @OneToMany(() => BoardMember, (bm) => bm.board)
   members: BoardMember[];
+
+  @OneToMany(() => BoardTag, (tag) => tag.board, { cascade: true })
+  tags: BoardTag[];
 
   @Column({ name: 'cover_type', length: 10, nullable: true })
   coverType: string | null;

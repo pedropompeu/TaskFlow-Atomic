@@ -25,7 +25,7 @@ export function CreateCardForm({ onSubmit, isLoading }: CreateCardFormProps) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex items-center gap-1.5 text-sm text-atomic-gray-500 hover:text-atomic-dark hover:bg-atomic-ice rounded-lg px-2 py-2 transition-colors mt-1"
+        className="w-full flex items-center gap-1.5 text-sm text-brand-text-muted hover:text-brand-text-secondary hover:bg-brand-surface rounded-lg px-2 py-2 transition-colors mt-1"
       >
         <Plus size={15} />
         Adicionar card
@@ -48,20 +48,20 @@ export function CreateCardForm({ onSubmit, isLoading }: CreateCardFormProps) {
         }}
         placeholder="Título do card…"
         rows={2}
-        className="w-full px-3 py-2 text-sm border border-atomic-orange/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-atomic-orange resize-none"
+        className="w-full px-3 py-2 text-sm bg-brand-surface border border-brand-accent/40 rounded-lg text-brand-text-primary placeholder-brand-text-muted focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent resize-none"
       />
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={isLoading || !title.trim()}
-          className="px-3 py-1.5 bg-atomic-orange text-white text-sm font-medium rounded-lg hover:bg-atomic-orange/90 disabled:opacity-50 transition-colors"
+          className="px-3 py-1.5 bg-brand-accent text-brand-accent-fg text-sm font-medium rounded-lg hover:bg-brand-accent-hover disabled:opacity-50 transition-colors"
         >
           {isLoading ? 'Adicionando…' : 'Adicionar'}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="p-1.5 text-atomic-gray-500 hover:text-atomic-dark transition-colors"
+          className="p-1.5 text-brand-text-muted hover:text-brand-text-secondary transition-colors"
         >
           <X size={16} />
         </button>

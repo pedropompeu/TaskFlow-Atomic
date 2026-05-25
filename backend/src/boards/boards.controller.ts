@@ -128,4 +128,33 @@ export class BoardsController {
   ) {
     return this.boardsService.removeMember(id, user.id, userId);
   }
+
+  // ── Board Tags ────────────────────────────────────────────────────────────
+
+  @Get(':id/tags')
+  @ApiOperation({ summary: 'List board-level tag catalog' })
+  getBoardTags(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+    return this.boardsService.getBoardTags(id, user.id);
+  }
+
+  @Post(':id/tags')
+  @ApiOperation({ summary: 'Create a board-level tag (adds to catalog)' })
+  createBoardTag(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { name: string; color: string },
+    @CurrentUser() user: User,
+  ) {
+    return this.boardsService.createBoardTag(id, body.name, body.color ?? '#6B7280', user.id);
+  }
+
+  @Delete(':id/tags/:tagId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a board-level tag from catalog (owner only)' })
+  deleteBoardTag(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('tagId', ParseUUIDPipe) tagId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.boardsService.deleteBoardTag(id, tagId, user.id);
+  }
 }

@@ -68,30 +68,30 @@ export function BoardMembersPanel({ boardId, currentUserId, isOwner, onClose }: 
         exit={{ opacity: 0 }}
       >
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" onClick={onClose} />
 
         {/* Panel */}
         <motion.div
-          className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-atomic-gray-300/30 overflow-hidden"
+          className="relative z-10 w-full max-w-md bg-brand-surface-elevated border border-brand-border rounded-2xl shadow-brand-modal overflow-hidden"
           initial={{ scale: 0.95, opacity: 0, y: 12 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 12 }}
           transition={{ type: 'spring', duration: 0.3 }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-atomic-gray-300/20">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-brand-border-subtle">
             <div className="flex items-center gap-2">
-              <Users size={18} className="text-atomic-orange" />
-              <h2 className="font-semibold text-atomic-dark">Membros do quadro</h2>
+              <Users size={16} className="text-brand-accent" />
+              <h2 className="font-semibold text-brand-text-primary">Membros do quadro</h2>
               {data && (
-                <span className="text-xs bg-atomic-ice text-atomic-gray-500 font-medium px-1.5 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold bg-brand-surface text-brand-text-muted px-1.5 py-0.5 rounded-full tabular-nums">
                   {allMembers.length}
                 </span>
               )}
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 text-atomic-gray-500 hover:text-atomic-dark hover:bg-atomic-ice rounded-lg transition-colors"
+              className="p-1.5 text-brand-text-muted hover:text-brand-text-primary hover:bg-brand-surface rounded-lg transition-colors"
             >
               <X size={16} />
             </button>
@@ -100,7 +100,7 @@ export function BoardMembersPanel({ boardId, currentUserId, isOwner, onClose }: 
           {/* Invite form (owner only) */}
           {isOwner && (
             <form onSubmit={handleInvite} className="px-5 pt-4 pb-3">
-              <label className="block text-xs font-medium text-atomic-gray-500 mb-1.5">
+              <label className="block text-[11px] font-semibold text-brand-text-muted uppercase tracking-[0.06em] mb-2">
                 Convidar por e-mail
               </label>
               <div className="flex gap-2">
@@ -110,12 +110,12 @@ export function BoardMembersPanel({ boardId, currentUserId, isOwner, onClose }: 
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(''); }}
                   placeholder="usuario@email.com"
-                  className="flex-1 px-3 py-2 text-sm border border-atomic-gray-300/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-atomic-orange/40 bg-white"
+                  className="flex-1 px-3 py-2 text-sm border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/30 bg-brand-surface text-brand-text-primary placeholder-brand-text-muted"
                 />
                 <button
                   type="submit"
                   disabled={invite.isPending || !email.trim()}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-atomic-orange text-white text-sm font-medium rounded-lg hover:bg-atomic-orange/90 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-brand-accent text-brand-accent-fg text-sm font-medium rounded-lg hover:bg-brand-accent-hover disabled:opacity-50 transition-colors"
                 >
                   {invite.isPending ? (
                     <Loader2 size={14} className="animate-spin" />
@@ -125,7 +125,7 @@ export function BoardMembersPanel({ boardId, currentUserId, isOwner, onClose }: 
                   Convidar
                 </button>
               </div>
-              {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+              {error && <p className="mt-1.5 text-xs text-brand-error">{error}</p>}
             </form>
           )}
 
@@ -133,7 +133,7 @@ export function BoardMembersPanel({ boardId, currentUserId, isOwner, onClose }: 
           <div className="px-5 pb-5 space-y-1 max-h-80 overflow-y-auto">
             {isLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 size={20} className="animate-spin text-atomic-gray-500" />
+                <Loader2 size={20} className="animate-spin text-brand-text-muted" />
               </div>
             ) : (
               <AnimatePresence initial={false}>
@@ -144,26 +144,26 @@ export function BoardMembersPanel({ boardId, currentUserId, isOwner, onClose }: 
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 8 }}
                     transition={{ delay: i * 0.04 }}
-                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-atomic-ice/60 transition-colors group"
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-brand-surface transition-colors group"
                   >
                     <MemberAvatar name={member.name} index={i} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-atomic-dark truncate flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-brand-text-primary truncate flex items-center gap-1.5">
                         {member.name}
                         {member.id === currentUserId && (
-                          <span className="text-[10px] text-atomic-gray-500 font-normal">(você)</span>
+                          <span className="text-[10px] text-brand-text-muted font-normal">(você)</span>
                         )}
                       </p>
-                      <p className="text-xs text-atomic-gray-500 truncate">{member.email}</p>
+                      <p className="text-xs text-brand-text-muted truncate">{member.email}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {member.isOwner ? (
-                        <span className="flex items-center gap-1 text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">
+                        <span className="flex items-center gap-1 text-[11px] text-brand-warning-fg bg-brand-warning-subtle px-1.5 py-0.5 rounded-full font-medium">
                           <Crown size={10} />
                           Dono
                         </span>
                       ) : (
-                        <span className="text-[11px] text-atomic-gray-500 bg-atomic-ice px-1.5 py-0.5 rounded-full">
+                        <span className="text-[11px] text-brand-text-muted bg-brand-surface px-1.5 py-0.5 rounded-full">
                           Editor
                         </span>
                       )}
@@ -171,7 +171,7 @@ export function BoardMembersPanel({ boardId, currentUserId, isOwner, onClose }: 
                         <button
                           onClick={() => remove.mutate(member.id)}
                           disabled={remove.isPending}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-atomic-gray-500 hover:text-red-500 transition-all"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-brand-text-muted hover:text-brand-error transition-all"
                           aria-label={`Remover ${member.name}`}
                         >
                           <Trash2 size={13} />

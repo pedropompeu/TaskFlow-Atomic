@@ -19,6 +19,8 @@ import { ReorderCardsDto } from './dto/reorder-cards.dto';
 import { AddTagDto } from './dto/add-tag.dto';
 import { AddAssigneeDto } from './dto/add-assignee.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { CreateChecklistItemDto } from './dto/create-checklist-item.dto';
+import { UpdateChecklistItemDto } from './dto/update-checklist-item.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
@@ -166,5 +168,32 @@ export class CardsController {
     @CurrentUser() user: User,
   ) {
     return this.cardsService.deleteComment(commentId, user.id);
+  }
+
+  // ── Checklist ──────────────────────────────────────────────────────────────
+
+  @Post('cards/:id/checklist')
+  @ApiOperation({ summary: 'Add a checklist item to a card' })
+  createChecklistItem(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CreateChecklistItemDto,
+  ) {
+    return this.cardsService.createChecklistItem(id, dto);
+  }
+
+  @Patch('checklist-items/:itemId')
+  @ApiOperation({ summary: 'Toggle or update a checklist item' })
+  updateChecklistItem(
+    @Param('itemId', ParseUUIDPipe) itemId: string,
+    @Body() dto: UpdateChecklistItemDto,
+  ) {
+    return this.cardsService.updateChecklistItem(itemId, dto);
+  }
+
+  @Delete('checklist-items/:itemId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a checklist item' })
+  deleteChecklistItem(@Param('itemId', ParseUUIDPipe) itemId: string) {
+    return this.cardsService.deleteChecklistItem(itemId);
   }
 }

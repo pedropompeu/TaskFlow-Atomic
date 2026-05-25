@@ -10,18 +10,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   return (
-    <div id="dashboard-root" className="min-h-screen bg-atomic-ice relative overflow-hidden">
+    <div id="dashboard-root" className="min-h-screen bg-brand-bg relative overflow-hidden">
 
-      {/* ── Aurora — blobs animados no fundo ── */}
-      <div className="pointer-events-none fixed inset-0 -z-[5] overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-[520px] h-[520px] rounded-full bg-atomic-purple/10 blur-3xl animate-aurora-1" />
-        <div className="absolute top-1/2 right-1/4 w-[420px] h-[420px] rounded-full bg-atomic-orange/10 blur-3xl animate-aurora-2" />
-        <div className="absolute bottom-1/4 left-2/3 w-[380px] h-[380px] rounded-full bg-atomic-yellow/8 blur-3xl animate-aurora-3" />
-      </div>
-
-      {/* ── Header — pílula escura (mesmo padrão do Header público) ── */}
-      <header className="fixed top-3 sm:top-6 left-0 right-0 z-50 px-3 sm:px-4">
-        <div className="mx-auto max-w-[960px] bg-[#1D1D1B]/50 backdrop-blur-md rounded-2xl px-4 sm:px-8 py-3 sm:py-4 flex items-center justify-between shadow-lg gap-2">
+      {/* ── TopBar — Slate Protocol ── */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-brand-bg/85 backdrop-blur-md border-b border-brand-border-subtle/70">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-2">
 
           {/* Logo + TaskFlow */}
           <div className="flex items-center gap-3 shrink-0">
@@ -31,39 +24,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 alt="Atomic Group"
                 width={952}
                 height={304}
-                className="h-7 w-auto object-contain"
+                className="h-6 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
                 priority
               />
             </a>
-            <span className="text-white/25 font-light">|</span>
-            <Link href="/dashboard" className="font-heading text-base font-bold text-white">
-              Task<span className="text-atomic-orange">Flow</span>
+            <span className="text-brand-border font-light">|</span>
+            <Link href="/dashboard" className="font-heading text-sm font-bold text-brand-text-primary">
+              Task<span className="text-brand-accent">Flow</span>
             </Link>
           </div>
 
           {/* Nav + Notificações */}
-          <nav className="flex items-center gap-3 sm:gap-6">
+          <nav className="flex items-center gap-1 sm:gap-2">
             <Link
               href="/dashboard"
-              className={`font-heading text-sm transition-colors ${
+              className={`px-3 py-1.5 rounded-lg font-heading text-sm font-medium transition-colors ${
                 pathname === '/dashboard'
-                  ? 'text-atomic-orange border-b border-atomic-orange pb-0.5'
-                  : 'text-white/70 hover:text-white'
+                  ? 'text-brand-accent bg-brand-accent-muted/40'
+                  : 'text-brand-text-secondary hover:text-brand-text-primary hover:bg-brand-surface'
               }`}
             >
-              <span className="hidden xs:inline">Quadro</span>
-              <span className="xs:hidden">Q</span>
+              Quadros
             </Link>
             <Link
               href="/dashboard/analytics"
-              className={`font-heading text-sm transition-colors ${
+              className={`px-3 py-1.5 rounded-lg font-heading text-sm font-medium transition-colors ${
                 pathname === '/dashboard/analytics'
-                  ? 'text-atomic-orange border-b border-atomic-orange pb-0.5'
-                  : 'text-white/70 hover:text-white'
+                  ? 'text-brand-accent bg-brand-accent-muted/40'
+                  : 'text-brand-text-secondary hover:text-brand-text-primary hover:bg-brand-surface'
               }`}
             >
-              <span className="hidden xs:inline">Análises</span>
-              <span className="xs:hidden">A</span>
+              Análises
             </Link>
             <NotificationBell />
             <button
@@ -75,10 +66,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 });
                 window.location.href = '/login';
               }}
-              className="flex items-center gap-1.5 font-heading text-sm text-white/70 hover:text-red-400 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-heading text-sm text-brand-text-secondary hover:text-brand-error hover:bg-brand-error-subtle transition-colors"
             >
               <LogOut size={14} />
-              Sair
+              <span className="hidden sm:inline">Sair</span>
             </button>
           </nav>
 
@@ -86,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       {/* Conteúdo com espaço para o header fixo */}
-      <main className="max-w-screen-xl mx-auto px-3 sm:px-6 pt-24 sm:pt-28 pb-6">{children}</main>
+      <main className="max-w-screen-xl mx-auto px-3 sm:px-6 pt-20 pb-8">{children}</main>
 
     </div>
   );

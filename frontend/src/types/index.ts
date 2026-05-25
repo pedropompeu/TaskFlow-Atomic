@@ -15,6 +15,23 @@ export interface CardTag {
   color: string;
 }
 
+export interface BoardTag {
+  id: string;
+  boardId: string;
+  name: string;
+  color: string;
+  createdAt: string;
+}
+
+export interface ChecklistItem {
+  id: string;
+  cardId: string;
+  text: string;
+  done: boolean;
+  position: number;
+  createdAt: string;
+}
+
 export interface CardComment {
   id: string;
   cardId: string;
@@ -60,6 +77,7 @@ export interface Card {
   accentColor: string | null;
   position: number;
   tags: CardTag[];
+  checklists: ChecklistItem[];
   history: CardHistoryEntry[];
   attachments: Attachment[];
   comments: CardComment[];
@@ -105,15 +123,15 @@ export interface AppNotification {
 }
 
 export const COLUMN_CONFIG: { status: CardStatus; title: string; accent: string }[] = [
-  { status: 'todo',        title: 'A Fazer',       accent: 'border-t-atomic-gray-500' },
-  { status: 'in_progress', title: 'Em Andamento',  accent: 'border-t-atomic-orange' },
-  { status: 'in_review',   title: 'Em Revisão',    accent: 'border-t-atomic-purple' },
-  { status: 'done',        title: 'Concluído',     accent: 'border-t-atomic-green' },
+  { status: 'todo',        title: 'A Fazer',       accent: 'border-t-[var(--primitive-neutral-400)]' },
+  { status: 'in_progress', title: 'Em Andamento',  accent: 'border-t-[var(--color-accent)]' },
+  { status: 'in_review',   title: 'Em Revisão',    accent: 'border-t-[var(--primitive-slate-200)]' },
+  { status: 'done',        title: 'Concluído',     accent: 'border-t-[var(--color-success)]' },
 ];
 
 export const PRIORITY_META: Record<CardPriority, { label: string; classes: string; accent: string }> = {
-  low:    { label: 'Baixa',   classes: 'bg-atomic-ice text-atomic-gray-600',          accent: '#D9D9D9' },
-  medium: { label: 'Média',   classes: 'bg-atomic-yellow/20 text-amber-700',          accent: '#FDCC32' },
-  high:   { label: 'Alta',    classes: 'bg-atomic-orange/15 text-atomic-orange',      accent: '#F78E2F' },
-  urgent: { label: 'Urgente', classes: 'bg-red-100 text-red-600',                     accent: '#EF4444' },
+  low:    { label: 'Baixa',   classes: 'bg-brand-surface-elevated text-brand-text-muted',   accent: 'var(--primitive-neutral-400)' },
+  medium: { label: 'Média',   classes: 'bg-brand-warning-subtle text-brand-warning-fg',     accent: 'var(--primitive-amber-100)' },
+  high:   { label: 'Alta',    classes: 'bg-brand-accent-muted text-brand-accent',            accent: 'var(--color-accent)' },
+  urgent: { label: 'Urgente', classes: 'bg-brand-error-subtle text-brand-error',             accent: 'var(--color-error-fg)' },
 };

@@ -16,6 +16,7 @@ import { Board } from '../../boards/entities/board.entity';
 import { User } from '../../users/entities/user.entity';
 import { CardHistory } from './card-history.entity';
 import { CardTag } from './card-tag.entity';
+import { ChecklistItem } from './checklist-item.entity';
 import { Attachment } from './attachment.entity';
 import { CardComment } from './card-comment.entity';
 import { CardStatus, CardPriority } from './card-enums';
@@ -85,6 +86,9 @@ export class Card {
 
   @OneToMany(() => CardTag, (tag) => tag.card, { cascade: true })
   tags: CardTag[];
+
+  @OneToMany(() => ChecklistItem, (item) => item.card, { cascade: true })
+  checklists: ChecklistItem[];
 
   @OneToMany(() => Attachment, (attachment) => attachment.card, { cascade: true })
   attachments: Attachment[];

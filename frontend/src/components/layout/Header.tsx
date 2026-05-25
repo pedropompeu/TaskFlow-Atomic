@@ -29,7 +29,7 @@ export function Header() {
     <header className="fixed top-6 left-0 right-0 z-50 px-4">
 
       {/* ── Pílula principal ── */}
-      <div className="mx-auto max-w-[960px] bg-[#1D1D1B]/50 backdrop-blur-md rounded-2xl px-6 py-3 flex items-center justify-between shadow-lg">
+      <div className="mx-auto max-w-[960px] bg-brand-surface/50 backdrop-blur-md rounded-2xl px-6 py-3 flex items-center justify-between shadow-lg">
 
         {/* Logo oficial */}
         <a href="https://atomicgroup.com.br" target="_blank" rel="noopener noreferrer" className="shrink-0">
@@ -54,7 +54,7 @@ export function Header() {
                     <ChevronDown size={13} className="opacity-60 group-hover:rotate-180 transition-transform duration-200" />
                   </button>
                   <div className="absolute left-0 top-full hidden group-hover:block pt-3 min-w-[180px]">
-                    <ul className="bg-[#1D1D1B]/95 backdrop-blur-md rounded-xl border border-white/10 py-1.5 shadow-xl">
+                    <ul className="bg-brand-surface-elevated/95 backdrop-blur-md rounded-xl border border-brand-border-subtle py-1.5 shadow-xl">
                       {item.children.map((child) => (
                         <li key={child.label}>
                           <a
@@ -90,7 +90,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <a
             href="#"
-            className="hidden md:inline-flex items-center gap-2 bg-atomic-purple text-white font-heading font-bold text-xs rounded-lg px-5 py-2 hover:bg-atomic-purple/90 transition-colors"
+            className="hidden md:inline-flex items-center gap-2 bg-brand-accent text-brand-accent-fg font-heading font-bold text-xs rounded-lg px-5 py-2 hover:bg-brand-accent-hover transition-colors"
           >
             <Zap size={12} className="fill-white" />
             SEJA EXTRAORDINÁRIO
@@ -107,7 +107,7 @@ export function Header() {
 
       {/* ── Menu mobile (segunda pílula) ── */}
       {mobileOpen && (
-        <div className="md:hidden mt-2 mx-auto max-w-[960px] bg-[#1D1D1B]/95 backdrop-blur-md rounded-2xl shadow-lg overflow-hidden">
+        <div className="md:hidden mt-2 mx-auto max-w-[960px] bg-brand-surface-elevated/95 backdrop-blur-md rounded-2xl shadow-lg overflow-hidden">
           <ul className="py-3">
             {NAV_ITEMS.map((item) => {
               if ('children' in item) {
@@ -149,7 +149,7 @@ export function Header() {
           <div className="px-5 py-4 border-t border-white/10">
             <a
               href="#"
-              className="flex items-center justify-center gap-2 bg-atomic-purple text-white font-heading font-bold text-sm rounded-lg px-6 py-3 w-full"
+              className="flex items-center justify-center gap-2 bg-brand-accent text-brand-accent-fg font-heading font-bold text-sm rounded-lg px-6 py-3 w-full hover:bg-brand-accent-hover transition-colors"
             >
               <Zap size={13} className="fill-white" />
               SEJA EXTRAORDINÁRIO

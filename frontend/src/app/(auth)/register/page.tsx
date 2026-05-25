@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
+import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -12,12 +14,18 @@ const schema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('E-mail inválido'),
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
+  confirmPassword: z.string(),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: 'As senhas não coincidem',
+  path: ['confirmPassword'],
 });
 
 type FormData = z.infer<typeof schema>;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const {
     register,
     handleSubmit,
@@ -25,7 +33,8 @@ export default function RegisterPage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const { mutate, isPending, isError, error } = useMutation({
-    mutationFn: (data: FormData) => api.post('/auth/register', data),
+    mutationFn: ({ name, email, password }: FormData) =>
+      api.post('/auth/register', { name, email, password }),
     onSuccess: () => router.push('/dashboard'),
   });
 
@@ -42,7 +51,7 @@ export default function RegisterPage() {
 
             <div className="mb-8 text-center">
               <h1 className="font-heading text-2xl font-bold text-white drop-shadow">
-                Task<span className="text-atomic-orange">Flow</span>
+                Task<span className="text-brand-accent">Flow</span>
               </h1>
               <p className="font-sans text-white/70 mt-1 text-sm">
                 Crie sua conta
@@ -59,7 +68,7 @@ export default function RegisterPage() {
                   type="text"
                   autoComplete="name"
                   {...register('name')}
-                  className="w-full px-4 py-2.5 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-atomic-orange/60 focus:border-atomic-orange/50 transition-all"
+                  className="w-full px-4 py-2.5 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-brand-accent/60 focus:border-brand-accent/50 transition-all"
                   placeholder="João Silva"
                 />
                 {errors.name && (
@@ -76,7 +85,7 @@ export default function RegisterPage() {
                   type="email"
                   autoComplete="email"
                   {...register('email')}
-                  className="w-full px-4 py-2.5 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-atomic-orange/60 focus:border-atomic-orange/50 transition-all"
+                  className="w-full px-4 py-2.5 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-brand-accent/60 focus:border-brand-accent/50 transition-all"
                   placeholder="voce@exemplo.com"
                 />
                 {errors.email && (
@@ -88,16 +97,53 @@ export default function RegisterPage() {
                 <label htmlFor="password" className="block font-sans text-sm font-medium text-white/90 mb-1.5">
                   Senha
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  {...register('password')}
-                  className="w-full px-4 py-2.5 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-atomic-orange/60 focus:border-atomic-orange/50 transition-all"
-                  placeholder="Mínimo 8 caracteres"
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    {...register('password')}
+                    className="w-full px-4 py-2.5 pr-11 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-brand-accent/60 focus:border-brand-accent/50 transition-all"
+                    placeholder="Mínimo 8 caracteres"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="mt-1 text-xs text-red-300">{errors.password.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block font-sans text-sm font-medium text-white/90 mb-1.5">
+                  Confirmar senha
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirm ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    {...register('confirmPassword')}
+                    className="w-full px-4 py-2.5 pr-11 bg-white/15 border border-white/25 rounded-lg font-sans text-sm text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-brand-accent/60 focus:border-brand-accent/50 transition-all"
+                    placeholder="Repita a senha"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+                    aria-label={showConfirm ? 'Ocultar confirmação' : 'Mostrar confirmação'}
+                  >
+                    {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-xs text-red-300">{errors.confirmPassword.message}</p>
                 )}
               </div>
 
@@ -110,7 +156,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full py-3 px-4 bg-atomic-orange text-white font-heading font-bold text-sm rounded-lg hover:bg-atomic-orange/90 active:scale-[0.99] disabled:opacity-60 transition-all mt-2"
+                className="w-full py-3 px-4 bg-brand-accent text-white font-heading font-bold text-sm rounded-lg hover:bg-brand-accent/90 active:scale-[0.99] disabled:opacity-60 transition-all mt-2"
               >
                 {isPending ? 'Criando conta…' : 'Criar conta'}
               </button>
@@ -118,7 +164,7 @@ export default function RegisterPage() {
 
             <p className="mt-6 text-center font-sans text-sm text-white/60">
               Já tem uma conta?{' '}
-              <Link href="/login" className="text-white hover:text-atomic-orange font-medium transition-colors">
+              <Link href="/login" className="text-white hover:text-brand-accent font-medium transition-colors">
                 Entrar
               </Link>
             </p>

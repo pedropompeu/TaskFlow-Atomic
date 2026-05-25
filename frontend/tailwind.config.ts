@@ -1,11 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     screens: {
       xs: '480px',
@@ -43,15 +39,64 @@ const config: Config = {
             600: '#7A7A7A',
           },
         },
+        brand: {
+          bg:     'var(--color-bg-base)',
+          subtle: 'var(--color-bg-subtle)',
+          surface: {
+            DEFAULT:  'var(--color-surface)',
+            elevated: 'var(--color-surface-elevated)',
+            overlay:  'var(--color-surface-overlay)',
+          },
+          border: {
+            DEFAULT: 'var(--color-border)',
+            subtle:  'var(--color-border-subtle)',
+            strong:  'var(--color-border-strong)',
+          },
+          accent: {
+            DEFAULT: 'var(--color-accent)',
+            hover:   'var(--color-accent-hover)',
+            muted:   'var(--color-accent-muted)',
+            fg:      'var(--color-accent-fg)',
+          },
+          text: {
+            primary:   'var(--color-text-primary)',
+            secondary: 'var(--color-text-secondary)',
+            muted:     'var(--color-text-muted)',
+            inverse:   'var(--color-text-inverse)',
+          },
+          success: {
+            DEFAULT: 'var(--color-success)',
+            subtle:  'var(--color-success-subtle)',
+            fg:      'var(--color-success-fg)',
+          },
+          warning: {
+            DEFAULT: 'var(--color-warning)',
+            subtle:  'var(--color-warning-subtle)',
+            fg:      'var(--color-warning-fg)',
+          },
+          error: {
+            DEFAULT: 'var(--color-error)',
+            subtle:  'var(--color-error-subtle)',
+            fg:      'var(--color-error-fg)',
+          },
+        },
       },
       fontFamily: {
-        sans: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-cabin)', 'system-ui', 'sans-serif'],
+        sans:    ['var(--font-roboto)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-cabin)',  'system-ui', 'sans-serif'],
+        mono:    ["'Roboto Mono'", "'Courier New'", 'monospace'],
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        'brand-card':       'var(--shadow-card)',
+        'brand-card-hover': 'var(--shadow-card-hover)',
+        'brand-raised':     'var(--shadow-raised)',
+        'brand-modal':      'var(--shadow-modal)',
+        'brand-focus':      'var(--shadow-focus)',
       },
     },
   },

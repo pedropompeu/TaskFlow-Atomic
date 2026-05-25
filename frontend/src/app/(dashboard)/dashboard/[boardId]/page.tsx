@@ -66,10 +66,10 @@ export default function BoardPage() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-8 w-48 bg-stone-200 rounded" />
+        <div className="h-8 w-48 bg-brand-surface rounded" />
         <div className="flex gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="w-72 h-96 bg-stone-100 rounded-xl shrink-0" />
+            <div key={i} className="w-72 h-96 bg-brand-subtle rounded-xl shrink-0" />
           ))}
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function BoardPage() {
 
   if (!board) {
     return (
-      <div className="text-center py-20 text-stone-400">
+      <div className="text-center py-20 text-brand-text-muted">
         <p>Quadro não encontrado.</p>
       </div>
     );
@@ -92,15 +92,15 @@ export default function BoardPage() {
       <div className="flex items-center gap-3 mb-6 flex-wrap">
         <button
           onClick={() => router.push('/dashboard')}
-          className="p-1.5 text-atomic-gray-500 hover:text-atomic-dark hover:bg-white/60 rounded-lg transition-colors"
+          className="p-1.5 text-brand-text-muted hover:text-brand-text-primary hover:bg-brand-surface rounded-lg transition-colors"
           aria-label="Voltar aos quadros"
         >
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-atomic-dark">{board.title}</h2>
+          <h2 className="text-xl font-bold text-brand-text-primary">{board.title}</h2>
           {board.description && (
-            <p className="text-sm text-atomic-gray-500 mt-0.5">{board.description}</p>
+            <p className="text-sm text-brand-text-secondary mt-0.5">{board.description}</p>
           )}
         </div>
 
@@ -112,7 +112,7 @@ export default function BoardPage() {
                 key={u.userId}
                 title={u.userName}
                 style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length], zIndex: 10 - i }}
-                className="relative w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold text-white shadow-sm"
+                className="relative w-7 h-7 rounded-full border-2 border-brand-bg flex items-center justify-center text-[11px] font-bold text-white"
               >
                 {u.userName.charAt(0).toUpperCase()}
               </div>
@@ -120,7 +120,7 @@ export default function BoardPage() {
             {onlineUsers.length > 5 && (
               <div
                 style={{ zIndex: 5 }}
-                className="relative w-7 h-7 rounded-full border-2 border-white bg-atomic-gray-500 flex items-center justify-center text-[11px] font-bold text-white shadow-sm"
+                className="relative w-7 h-7 rounded-full border-2 border-brand-bg bg-brand-text-muted flex items-center justify-center text-[11px] font-bold text-white"
               >
                 +{onlineUsers.length - 5}
               </div>
@@ -138,13 +138,13 @@ export default function BoardPage() {
         {/* Botão Lixeira */}
         <button
           onClick={() => setShowTrash(true)}
-          className="relative flex items-center gap-1.5 px-3 py-1.5 text-sm text-atomic-gray-600 hover:text-atomic-dark border border-atomic-gray-300/50 hover:border-atomic-gray-300 bg-white/70 hover:bg-white rounded-lg transition-all"
+          className="relative flex items-center gap-1.5 px-3 py-1.5 text-sm text-brand-text-secondary hover:text-brand-text-primary border border-brand-border-subtle hover:border-brand-border bg-brand-surface hover:bg-brand-surface-elevated rounded-lg transition-all"
           aria-label="Lixeira"
         >
           <Trash2 size={14} />
           <span className="hidden xs:inline">Lixeira</span>
           {trashed.length > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-brand-error text-white text-[10px] font-bold rounded-full flex items-center justify-center">
               {trashed.length > 9 ? '9+' : trashed.length}
             </span>
           )}
@@ -153,7 +153,7 @@ export default function BoardPage() {
         {/* Botão Membros */}
         <button
           onClick={() => setShowMembers(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-atomic-gray-600 hover:text-atomic-dark border border-atomic-gray-300/50 hover:border-atomic-gray-300 bg-white/70 hover:bg-white rounded-lg transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-brand-text-secondary hover:text-brand-text-primary border border-brand-border-subtle hover:border-brand-border bg-brand-surface hover:bg-brand-surface-elevated rounded-lg transition-all"
         >
           <Users size={14} />
           <span className="hidden xs:inline">Membros</span>
@@ -164,7 +164,7 @@ export default function BoardPage() {
           <select
             value={filterUserId}
             onChange={(e) => setFilterUserId(e.target.value)}
-            className="px-2.5 py-1.5 text-sm border border-atomic-gray-300/50 rounded-lg bg-white/70 focus:outline-none focus:ring-2 focus:ring-atomic-orange/40 text-atomic-gray-600 transition-all"
+            className="px-2.5 py-1.5 text-sm border border-brand-border-subtle rounded-lg bg-brand-surface focus:outline-none focus:border-brand-accent text-brand-text-secondary transition-all"
           >
             <option value="">Todos</option>
             <option value="__none__">Sem responsável</option>
@@ -176,17 +176,17 @@ export default function BoardPage() {
 
         {/* Busca */}
         <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-atomic-gray-500 pointer-events-none" />
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-brand-text-muted pointer-events-none" />
           <input
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
             placeholder="Filtrar cards…"
-            className="pl-8 pr-7 py-1.5 text-sm border border-atomic-gray-300/50 rounded-lg bg-white/70 focus:outline-none focus:ring-2 focus:ring-atomic-orange/40 w-44 transition-all focus:w-56"
+            className="pl-8 pr-7 py-1.5 text-sm border border-brand-border-subtle rounded-lg bg-brand-surface text-brand-text-primary placeholder-brand-text-muted focus:outline-none focus:border-brand-accent w-44 transition-all focus:w-56"
           />
           {filterText && (
             <button
               onClick={() => setFilterText('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-atomic-gray-500 hover:text-atomic-dark"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-text-primary"
               aria-label="Limpar filtro"
             >
               <X size={13} />

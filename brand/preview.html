@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow — Brand Preview · Slate Protocol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="design-tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-bg-base);
+      color: var(--color-text-primary);
+      font-size: var(--text-body);
+      line-height: 1.5;
+    }
+
+    /* ── Layout ── */
+    .page { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      padding: var(--space-lg) 0;
+      display: flex; flex-direction: column; gap: var(--space-xs);
+    }
+    .sidebar-logo {
+      padding: 0 var(--space-lg) var(--space-lg);
+      border-bottom: 1px solid var(--color-border-subtle);
+      margin-bottom: var(--space-sm);
+    }
+    .sidebar-logo span {
+      font-size: var(--text-h2); font-weight: 700;
+      color: var(--color-text-primary);
+    }
+    .sidebar-logo .dot { color: var(--color-accent); }
+    .sidebar-section {
+      padding: var(--space-sm) var(--space-lg) var(--space-xs);
+      font-size: var(--text-label); font-weight: 500;
+      color: var(--color-text-muted);
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-lg);
+      color: var(--sidebar-item-text);
+      cursor: pointer; border-radius: 0;
+      transition: background var(--duration-hover) var(--ease-default),
+                  color var(--duration-hover) var(--ease-default);
+      font-size: var(--text-body);
+    }
+    .sidebar-item:hover {
+      background: var(--sidebar-item-bg-hover);
+      color: var(--sidebar-item-text-hover);
+    }
+    .sidebar-item.active {
+      background: var(--sidebar-item-bg-active);
+      color: var(--sidebar-item-text-active);
+      border-left: 2px solid var(--color-accent);
+    }
+    .sidebar-item .icon { width: 16px; height: 16px; opacity: 0.7; }
+
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .topbar {
+      background: var(--topbar-bg);
+      border-bottom: 1px solid var(--topbar-border);
+      padding: 0 var(--space-xl);
+      height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-title { font-size: var(--text-h3); color: var(--color-text-primary); font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: var(--space-sm); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: var(--radius-avatar);
+      background: var(--color-accent-muted); border: 1px solid var(--color-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--color-accent);
+    }
+
+    .content { flex: 1; padding: var(--space-xl); overflow-y: auto; }
+
+    /* ── Sections ── */
+    .section { margin-bottom: var(--space-3xl); }
+    .section-title {
+      font-size: var(--text-label); font-weight: 500;
+      color: var(--color-text-muted); text-transform: uppercase;
+      letter-spacing: 0.04em; margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+
+    /* ── KPI Cards ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-lg); }
+    .kpi-card {
+      background: var(--kpi-bg);
+      border: 1px solid var(--kpi-border);
+      border-radius: var(--radius-card);
+      padding: var(--space-lg);
+    }
+    .kpi-label { font-size: var(--text-body-sm); color: var(--kpi-label-text); margin-bottom: var(--space-sm); }
+    .kpi-value { font-size: var(--text-h1); font-weight: 700; color: var(--kpi-value-text); }
+    .kpi-trend { font-size: var(--text-body-sm); margin-top: var(--space-xs); }
+    .trend-up   { color: var(--kpi-trend-up); }
+    .trend-down { color: var(--kpi-trend-down); }
+    .trend-neutral { color: var(--kpi-trend-neutral); }
+
+    /* ── Kanban ── */
+    .kanban-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-lg); align-items: start; }
+    .kanban-column {
+      background: var(--column-bg);
+      border: 1px solid var(--column-border);
+      border-radius: var(--radius-card);
+      padding: var(--space-md);
+    }
+    .column-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+    .column-name {
+      font-size: var(--text-body-sm); font-weight: 500;
+      color: var(--column-header-text); text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .column-count {
+      background: var(--color-surface-elevated);
+      color: var(--color-text-muted);
+      font-size: var(--text-body-sm); font-weight: 500;
+      border-radius: var(--radius-badge);
+      padding: 1px 6px;
+    }
+    .kanban-cards { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .kcard {
+      background: var(--kcard-bg);
+      border: 1px solid var(--kcard-border);
+      border-radius: var(--radius-card);
+      padding: var(--space-md);
+      cursor: grab;
+      transition: background var(--duration-hover) var(--ease-default),
+                  border-color var(--duration-hover) var(--ease-default),
+                  box-shadow var(--duration-hover) var(--ease-default);
+    }
+    .kcard:hover {
+      background: var(--kcard-bg-hover);
+      border-color: var(--kcard-border-hover);
+      box-shadow: var(--shadow-card);
+    }
+    .kcard-title { font-size: var(--text-body); font-weight: 500; color: var(--color-text-primary); margin-bottom: var(--space-sm); }
+    .kcard-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); }
+    .kcard-assignee { font-size: var(--text-body-sm); color: var(--color-text-muted); font-family: var(--font-mono); }
+    .kcard-footer { display: flex; gap: var(--space-xs); margin-top: var(--space-sm); flex-wrap: wrap; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: var(--radius-badge);
+      font-size: var(--text-body-sm); font-weight: 500;
+    }
+    .badge-default  { background: var(--badge-default-bg);  color: var(--badge-default-text); }
+    .badge-accent   { background: var(--badge-accent-bg);   color: var(--badge-accent-text); }
+    .badge-success  { background: var(--badge-success-bg);  color: var(--badge-success-text); }
+    .badge-warning  { background: var(--badge-warning-bg);  color: var(--badge-warning-text); }
+    .badge-error    { background: var(--badge-error-bg);    color: var(--badge-error-text); }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; gap: var(--space-sm); flex-wrap: wrap; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: var(--space-sm);
+      padding: 7px var(--space-lg); border-radius: var(--radius-button);
+      font-size: var(--text-body); font-weight: 500; cursor: pointer; border: 1px solid transparent;
+      transition: background var(--duration-hover) var(--ease-default),
+                  border-color var(--duration-hover) var(--ease-default),
+                  color var(--duration-hover) var(--ease-default);
+    }
+    .btn-primary {
+      background: var(--btn-primary-bg); color: var(--btn-primary-text); border-color: transparent;
+    }
+    .btn-primary:hover { background: var(--btn-primary-bg-hover); }
+    .btn-secondary {
+      background: var(--btn-secondary-bg); color: var(--btn-secondary-text);
+      border-color: var(--btn-secondary-border);
+    }
+    .btn-secondary:hover { background: var(--btn-secondary-bg-hover); border-color: var(--color-border-strong); }
+    .btn-ghost { background: var(--btn-ghost-bg); color: var(--btn-ghost-text); }
+    .btn-ghost:hover { background: var(--btn-ghost-bg-hover); color: var(--btn-ghost-text-hover); }
+    .btn-danger {
+      background: var(--btn-danger-bg); color: var(--btn-danger-text);
+      border-color: var(--btn-danger-border);
+    }
+    .btn-danger:hover { background: var(--btn-danger-bg-hover); color: var(--btn-danger-text-hover); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+    /* ── Inputs ── */
+    .input-group { display: flex; flex-direction: column; gap: var(--space-sm); max-width: 320px; }
+    .input-label { font-size: var(--text-label); font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+    .input {
+      background: var(--input-bg); color: var(--input-text);
+      border: 1px solid var(--input-border); border-radius: var(--radius-input);
+      padding: 8px var(--space-md); font-size: var(--text-body); font-family: var(--font-sans);
+      transition: border-color var(--duration-hover) var(--ease-default),
+                  background var(--duration-hover) var(--ease-default),
+                  box-shadow var(--duration-hover) var(--ease-default);
+      outline: none;
+    }
+    .input::placeholder { color: var(--input-placeholder); }
+    .input:hover { border-color: var(--input-border-hover); }
+    .input:focus { border-color: var(--input-border-focus); background: var(--input-bg-focus); box-shadow: var(--shadow-focus); }
+    .input.error { border-color: var(--input-border-error); }
+    .input-error-msg { font-size: var(--text-body-sm); color: var(--color-error); }
+
+    /* ── Color Palette ── */
+    .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--space-sm); }
+    .swatch {
+      border-radius: var(--radius-card); overflow: hidden;
+      border: 1px solid var(--color-border-subtle);
+    }
+    .swatch-color { height: 48px; }
+    .swatch-info { padding: var(--space-sm); background: var(--color-surface); }
+    .swatch-name { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+    .swatch-hex { font-size: var(--text-code); font-family: var(--font-mono); color: var(--color-text-muted); }
+
+    /* ── Typography showcase ── */
+    .type-row { padding: var(--space-md) 0; border-bottom: 1px solid var(--color-border-subtle); display: flex; align-items: baseline; gap: var(--space-xl); }
+    .type-meta { min-width: 120px; font-size: var(--text-body-sm); font-family: var(--font-mono); color: var(--color-text-muted); }
+    .type-sample { flex: 1; }
+
+    /* ── Modal ── */
+    .modal-demo {
+      background: var(--modal-bg);
+      border: 1px solid var(--modal-border);
+      border-radius: var(--modal-radius);
+      box-shadow: var(--shadow-modal);
+      max-width: 480px;
+      padding: var(--space-xl);
+    }
+    .modal-title { font-size: var(--text-h2); font-weight: 600; margin-bottom: var(--space-sm); }
+    .modal-body { color: var(--color-text-secondary); margin-bottom: var(--space-xl); font-size: var(--text-body); line-height: 1.6; }
+    .modal-footer { display: flex; gap: var(--space-sm); justify-content: flex-end; }
+
+    /* ── Status pills ── */
+    .status-row { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+
+    /* ── Header brand page ── */
+    .brand-header {
+      background: var(--color-bg-subtle);
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding: var(--space-xl) var(--space-xl) var(--space-lg);
+    }
+    .brand-header h1 { font-size: var(--text-display); font-weight: 700; letter-spacing: -0.02em; }
+    .brand-header p { color: var(--color-text-secondary); margin-top: var(--space-sm); }
+    .brand-header .tagline {
+      display: inline-block; margin-top: var(--space-md);
+      font-size: var(--text-h2); font-style: italic;
+      color: var(--color-accent);
+    }
+
+    /* ── Mono text ── */
+    .mono { font-family: var(--font-mono); }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span>Task<span class="dot">Flow</span></span>
+    </div>
+
+    <div class="sidebar-section">Workspace</div>
+    <div class="sidebar-item active">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      Boards
+    </div>
+    <div class="sidebar-item">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+      Minhas Tarefas
+    </div>
+    <div class="sidebar-item">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v14M1 8h14" stroke-linecap="round"/></svg>
+      Analytics
+    </div>
+
+    <div class="sidebar-section" style="margin-top: auto;">Time</div>
+    <div class="sidebar-item">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5"/><circle cx="12" cy="10" r="3"/></svg>
+      Membros
+    </div>
+    <div class="sidebar-item">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+      Configurações
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <span class="topbar-title">Sprint Atual — Q2 2026</span>
+      <div class="topbar-right">
+        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 12px;">+ Novo Card</button>
+        <div class="avatar">PL</div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Brand Header -->
+      <div class="brand-header" style="margin: calc(-1 * var(--space-xl)) calc(-1 * var(--space-xl)) var(--space-2xl); padding: var(--space-xl);">
+        <h1>TaskFlow</h1>
+        <p>Brand Preview · Conceito <strong>Slate Protocol</strong> · v1.0</p>
+        <span class="tagline">"Veja antes. Resolva antes."</span>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="section">
+        <div class="section-title">Dashboard — KPI Cards</div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Cards Concluídos</div>
+            <div class="kpi-value">47</div>
+            <div class="kpi-trend trend-up">↑ 12% esta semana</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Em Progresso</div>
+            <div class="kpi-value">18</div>
+            <div class="kpi-trend trend-neutral">— sem alteração</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Vencendo Hoje</div>
+            <div class="kpi-value" style="color: var(--color-warning);">3</div>
+            <div class="kpi-trend trend-down">↑ 2 desde ontem</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Membros Ativos</div>
+            <div class="kpi-value">6</div>
+            <div class="kpi-trend trend-up">↑ 1 novo membro</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kanban -->
+      <div class="section">
+        <div class="section-title">Quadro Kanban</div>
+        <div class="kanban-grid">
+
+          <div class="kanban-column">
+            <div class="column-header">
+              <span class="column-name">Backlog</span>
+              <span class="column-count">5</span>
+            </div>
+            <div class="kanban-cards">
+              <div class="kcard">
+                <div class="kcard-title">Setup Docker Compose com PostgreSQL + Redis</div>
+                <div class="kcard-footer">
+                  <span class="badge badge-default">DevOps</span>
+                  <span class="badge badge-warning">⏰ Amanhã</span>
+                </div>
+                <div class="kcard-meta" style="margin-top: var(--space-sm);">
+                  <span class="kcard-assignee">@pedro</span>
+                </div>
+              </div>
+              <div class="kcard">
+                <div class="kcard-title">Definir schema inicial das migrations TypeORM</div>
+                <div class="kcard-footer">
+                  <span class="badge badge-accent">Backend</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kanban-column">
+            <div class="column-header">
+              <span class="column-name">Em Progresso</span>
+              <span class="column-count">3</span>
+            </div>
+            <div class="kanban-cards">
+              <div class="kcard" style="border-color: var(--color-accent-muted);">
+                <div class="kcard-title">Autenticação JWT — guards + middleware Next.js</div>
+                <div class="kcard-footer">
+                  <span class="badge badge-accent">Auth</span>
+                  <span class="badge badge-success">Alta Prioridade</span>
+                </div>
+                <div class="kcard-meta" style="margin-top: var(--space-sm);">
+                  <span class="kcard-assignee">@ana</span>
+                </div>
+              </div>
+              <div class="kcard">
+                <div class="kcard-title">CRUD de boards com Swagger docs</div>
+                <div class="kcard-footer">
+                  <span class="badge badge-accent">Backend</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kanban-column">
+            <div class="column-header">
+              <span class="column-name">Revisão</span>
+              <span class="column-count">2</span>
+            </div>
+            <div class="kanban-cards">
+              <div class="kcard">
+                <div class="kcard-title">Kanban drag-and-drop com @dnd-kit</div>
+                <div class="kcard-footer">
+                  <span class="badge badge-accent">Frontend</span>
+                  <span class="badge badge-warning">Review pendente</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kanban-column">
+            <div class="column-header">
+              <span class="column-name">Concluído</span>
+              <span class="column-count">12</span>
+            </div>
+            <div class="kanban-cards">
+              <div class="kcard" style="opacity: 0.65;">
+                <div class="kcard-title">Setup do repositório + ESLint/Prettier</div>
+                <div class="kcard-footer">
+                  <span class="badge badge-success">✓ Entregue</span>
+                </div>
+              </div>
+              <div class="kcard" style="opacity: 0.65;">
+                <div class="kcard-title">Docker Compose inicial</div>
+                <div class="kcard-footer">
+                  <span class="badge badge-success">✓ Entregue</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="section">
+        <div class="section-title">Buttons — Todos os Estados</div>
+        <div class="btn-row">
+          <button class="btn btn-primary">Criar Card</button>
+          <button class="btn btn-secondary">Cancelar</button>
+          <button class="btn btn-ghost">Ver Histórico</button>
+          <button class="btn btn-danger">Excluir Board</button>
+          <button class="btn btn-primary" disabled>Salvando...</button>
+          <button class="btn btn-secondary" disabled>Desabilitado</button>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="section">
+        <div class="section-title">Badges & Status</div>
+        <div class="status-row">
+          <span class="badge badge-default">Backlog</span>
+          <span class="badge badge-accent">Em Progresso</span>
+          <span class="badge badge-success">Concluído</span>
+          <span class="badge badge-warning">Vencendo</span>
+          <span class="badge badge-error">Atrasado</span>
+          <span class="badge badge-accent">Frontend</span>
+          <span class="badge badge-accent">Backend</span>
+          <span class="badge badge-default">DevOps</span>
+          <span class="badge badge-success">Alta Prioridade</span>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="section">
+        <div class="section-title">Inputs</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-xl);">
+          <div class="input-group">
+            <label class="input-label">Título do Card</label>
+            <input class="input" type="text" placeholder="Ex: Implementar autenticação JWT">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Prazo</label>
+            <input class="input" type="text" value="24/05/2026" style="border-color: var(--input-border-focus); background: var(--input-bg-focus); box-shadow: var(--shadow-focus);">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Responsável</label>
+            <input class="input error" type="text" placeholder="@usuario" value="@invalido">
+            <span class="input-error-msg">Usuário não encontrado no workspace.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div class="section">
+        <div class="section-title">Modal — Confirmação</div>
+        <div class="modal-demo">
+          <div class="modal-title">Excluir card permanentemente?</div>
+          <div class="modal-body">
+            Esta ação não pode ser desfeita. O histórico de movimentações e todos os
+            anexos associados a <strong style="color: var(--color-text-primary);">"Autenticação JWT — guards + middleware"</strong> serão removidos permanentemente.
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost">Cancelar</button>
+            <button class="btn btn-danger">Excluir Card</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color Palette -->
+      <div class="section">
+        <div class="section-title">Paleta de Cores — Tokens Semânticos</div>
+        <div class="palette-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--color-bg-base);"></div>
+            <div class="swatch-info"><div class="swatch-name">bg-base</div><div class="swatch-hex">#0B0E14</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--color-surface);"></div>
+            <div class="swatch-info"><div class="swatch-name">surface</div><div class="swatch-hex">#151820</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--color-surface-elevated);"></div>
+            <div class="swatch-info"><div class="swatch-name">surface-elevated</div><div class="swatch-hex">#1E222D</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--color-accent);"></div>
+            <div class="swatch-info"><div class="swatch-name">accent</div><div class="swatch-hex">#527DA3</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--color-accent-hover);"></div>
+            <div class="swatch-info"><div class="swatch-name">accent-hover</div><div class="swatch-hex">#7499BF</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--color-success);"></div>
+            <div class="swatch-info"><div class="swatch-name">success</div><div class="swatch-hex">#4A8C6F</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--color-warning);"></div>
+            <div class="swatch-info"><div class="swatch-name">warning</div><div class="swatch-hex">#A08050</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--color-error);"></div>
+            <div class="swatch-info"><div class="swatch-name">error</div><div class="swatch-hex">#8C4A4A</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typography -->
+      <div class="section">
+        <div class="section-title">Tipografia — Roboto</div>
+        <div class="type-row">
+          <span class="type-meta mono">display / 36px 700</span>
+          <div class="type-sample" style="font-size: var(--text-display); font-weight: 700; letter-spacing: -0.02em;">Gestão de Times</div>
+        </div>
+        <div class="type-row">
+          <span class="type-meta mono">h1 / 24px 600</span>
+          <div class="type-sample" style="font-size: var(--text-h1); font-weight: 600;">Sprint Q2 2026</div>
+        </div>
+        <div class="type-row">
+          <span class="type-meta mono">h2 / 20px 600</span>
+          <div class="type-sample" style="font-size: var(--text-h2); font-weight: 600;">Autenticação JWT</div>
+        </div>
+        <div class="type-row">
+          <span class="type-meta mono">body / 14px 400</span>
+          <div class="type-sample" style="font-size: var(--text-body); color: var(--color-text-secondary);">Tech leads e PMs de equipes remotas que precisam de visibilidade real do que está travado.</div>
+        </div>
+        <div class="type-row">
+          <span class="type-meta mono">label / 12px 500</span>
+          <div class="type-sample" style="font-size: var(--text-label); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted);">Em Progresso</div>
+        </div>
+        <div class="type-row">
+          <span class="type-meta mono">code / 13px mono</span>
+          <div class="type-sample" style="font-size: var(--text-code); font-family: var(--font-mono); color: var(--color-text-secondary);">CARD-2847 · movido por @pedro · 14:32:07</div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /page -->
+
+</body>
+</html>

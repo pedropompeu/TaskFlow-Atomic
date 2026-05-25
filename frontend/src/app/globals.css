@@ -2,6 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Slate Protocol Design Tokens ──────────────────────────────────────── */
+:root {
+  --primitive-slate-950:  #070A10;
+  --primitive-slate-900:  #0B0E14;
+  --primitive-slate-800:  #0F1420;
+  --primitive-slate-700:  #131B2C;
+  --primitive-slate-600:  #1C2540;
+  --primitive-slate-500:  #243050;
+  --primitive-slate-400:  #3D5070;
+  --primitive-slate-300:  #527DA3;
+  --primitive-slate-200:  #7499BF;
+  --primitive-slate-100:  #A8BDD4;
+  --primitive-slate-50:   #D4E0EC;
+  --primitive-neutral-900: #0D0F14;
+  --primitive-neutral-800: #151820;
+  --primitive-neutral-700: #1E222D;
+  --primitive-neutral-600: #2A3040;
+  --primitive-neutral-500: #3A4255;
+  --primitive-neutral-400: #4E5A6B;
+  --primitive-neutral-300: #6B7A8D;
+  --primitive-neutral-200: #8B95A8;
+  --primitive-neutral-100: #B8C2D0;
+  --primitive-neutral-50:  #E8ECF4;
+  --primitive-neutral-0:   #F5F7FA;
+  --primitive-green-900:  #0E1F18;
+  --primitive-green-800:  #1A3028;
+  --primitive-green-300:  #4A8C6F;
+  --primitive-green-100:  #7DC4A0;
+  --primitive-amber-900:  #1E1508;
+  --primitive-amber-800:  #2E2010;
+  --primitive-amber-300:  #A08050;
+  --primitive-amber-100:  #C9A870;
+  --primitive-red-900:    #1E0808;
+  --primitive-red-800:    #2E1010;
+  --primitive-red-600:    #501818;
+  --primitive-red-300:    #8C4A4A;
+  --primitive-red-100:    #C47070;
+  --primitive-duration-fast:   100ms;
+  --primitive-duration-base:   150ms;
+  --primitive-duration-slow:   250ms;
+  --primitive-ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+  --color-bg-base:          var(--primitive-slate-900);
+  --color-bg-subtle:        var(--primitive-slate-950);
+  --color-surface:          var(--primitive-neutral-800);
+  --color-surface-elevated: var(--primitive-neutral-700);
+  --color-surface-overlay:  var(--primitive-neutral-600);
+  --color-border:           var(--primitive-neutral-600);
+  --color-border-subtle:    var(--primitive-neutral-700);
+  --color-border-strong:    var(--primitive-neutral-500);
+  --color-text-primary:   var(--primitive-neutral-50);
+  --color-text-secondary: var(--primitive-neutral-200);
+  --color-text-muted:     var(--primitive-neutral-400);
+  --color-text-inverse:   var(--primitive-neutral-900);
+  --color-accent:           var(--primitive-slate-300);
+  --color-accent-hover:     var(--primitive-slate-200);
+  --color-accent-muted:     var(--primitive-slate-500);
+  --color-accent-fg:        var(--primitive-neutral-0);
+  --color-success:          var(--primitive-green-300);
+  --color-success-subtle:   var(--primitive-green-800);
+  --color-success-fg:       var(--primitive-green-100);
+  --color-warning:          var(--primitive-amber-300);
+  --color-warning-subtle:   var(--primitive-amber-800);
+  --color-warning-fg:       var(--primitive-amber-100);
+  --color-error:            var(--primitive-red-300);
+  --color-error-subtle:     var(--primitive-red-800);
+  --color-error-fg:         var(--primitive-red-100);
+  --shadow-card:       0 1px 2px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.04);
+  --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  --shadow-raised:     0 4px 8px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-modal:      0 20px 40px rgba(0,0,0,0.65), 0 8px 16px rgba(0,0,0,0.4);
+  --shadow-focus:      0 0 0 3px rgba(82, 125, 163, 0.35);
+}
+
 @layer base {
   :root {
     --background: 0 0% 98%;
@@ -23,8 +96,7 @@
   * { border-color: hsl(var(--border)); }
 
   body {
-    background-color: #E8F0F4;
-    color: #1D1D1B;
+    color: var(--color-text-primary);
   }
 }
 
@@ -118,20 +190,20 @@
   .animate-gradient-bg  { background-size: 400% 400%; animation: gradient-shift 14s ease infinite; }
 
   /* Glow buttons */
-  .btn-glow-orange {
+  .btn-glow-accent {
     transition: transform 150ms ease-out, box-shadow 150ms ease-out;
   }
-  .btn-glow-orange:hover {
+  .btn-glow-accent:hover {
     transform: scale(1.02);
-    box-shadow: 0 4px 20px rgba(247, 142, 47, 0.35);
+    box-shadow: 0 4px 20px rgba(82, 125, 163, 0.35);
   }
-  .btn-glow-orange:active { transform: scale(0.98); }
+  .btn-glow-accent:active { transform: scale(0.98); }
 
   /* Input glow focus */
   .input-glow:focus {
     outline: none;
-    border-color: #F78E2F;
-    box-shadow: 0 0 0 3px rgba(247, 142, 47, 0.15);
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-focus);
   }
 }
 

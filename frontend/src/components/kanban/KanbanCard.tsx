@@ -41,7 +41,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
         style={dndStyle}
         {...attributes}
         {...listeners}
-        className="rounded-lg border-2 border-dashed border-atomic-orange/40 bg-atomic-orange/5 min-h-[80px]"
+        className="rounded-lg border-2 border-dashed border-brand-accent/40 bg-brand-accent-muted/20 min-h-[80px]"
       />
     );
   }
@@ -57,10 +57,10 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
         scale:   isDragging ? 1.04 : 1,
         rotate:  isDragging ? 2    : 0,
         boxShadow: isDragging
-          ? '0 20px 40px rgba(0,0,0,0.18)'
+          ? '0 20px 40px rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.4)'
           : isDone
-          ? '0 2px 12px rgba(67,172,141,0.18)'
-          : '0 2px 8px rgba(0,0,0,0.07)',
+          ? '0 2px 10px rgba(74,140,111,0.18), 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)'
+          : '0 1px 2px rgba(0,0,0,0.38), 0 2px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)',
         zIndex: isDragging ? 50 : 'auto',
       }}
       exit={{ opacity: 0, x: 40, scale: 0.92 }}
@@ -70,23 +70,23 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
         scale:   { type: 'spring', stiffness: 320, damping: 22 },
         rotate:  { type: 'spring', stiffness: 300, damping: 20 },
       }}
-      style={{ borderLeftColor: isDone ? '#43AC8D' : (card.accentColor ?? priority.accent), ...dndStyle }}
+      style={{ borderLeftColor: isDone ? '#4A8C6F' : (card.accentColor ?? priority.accent), ...dndStyle }}
       className={cn(
-        'group bg-white/88 backdrop-blur-sm rounded-lg border border-l-[3px] p-3 cursor-grab active:cursor-grabbing',
+        'group relative bg-brand-surface rounded-xl border border-l-[3px] px-3 pt-3 pb-2.5 cursor-grab active:cursor-grabbing transition-colors duration-150',
         isDone
-          ? 'border-atomic-green/40'
-          : 'border-white/50 hover:border-white/80 hover:shadow-md',
+          ? 'border-brand-success/40 hover:bg-brand-surface-elevated'
+          : 'border-brand-border-subtle hover:border-brand-border hover:bg-brand-surface-elevated',
       )}
       {...attributes}
       {...listeners}
     >
       {/* Priority badge */}
       <div className="flex items-start justify-between gap-2 mb-2">
-        <span className={cn('text-xs font-medium px-1.5 py-0.5 rounded', priority.classes)}>
+        <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-md tracking-wide', priority.classes)}>
           {priority.label}
         </span>
         <button
-          className="opacity-0 group-hover:opacity-100 text-atomic-gray-500 hover:text-red-500 transition-opacity shrink-0"
+          className="opacity-0 group-hover:opacity-100 text-brand-text-muted hover:text-brand-error transition-opacity shrink-0"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
           aria-label="Excluir card"
@@ -97,7 +97,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
 
       {/* Title */}
       <p
-        className="text-sm font-medium text-atomic-dark mb-2 leading-snug cursor-pointer hover:text-atomic-orange transition-colors"
+        className="text-sm font-medium text-brand-text-primary mb-2.5 leading-snug cursor-pointer hover:text-brand-accent transition-colors"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => { e.stopPropagation(); onEdit(card); }}
       >
@@ -128,9 +128,9 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
         {due && (
           <span className={cn(
             'flex items-center gap-1 text-xs font-medium',
-            isOverdue ? 'bg-red-100 text-red-600 rounded px-1.5 py-0.5'     :
-            isNearDue ? 'bg-amber-100 text-amber-700 rounded px-1.5 py-0.5'  :
-                        'text-atomic-gray-500',
+            isOverdue ? 'bg-brand-error-subtle text-brand-error-fg rounded px-1.5 py-0.5' :
+            isNearDue ? 'bg-brand-warning-subtle text-brand-warning-fg rounded px-1.5 py-0.5' :
+                        'text-brand-text-muted',
           )}>
             <Calendar size={11} />
             {formatDistanceToNow(due, { addSuffix: true, locale: ptBR })}
@@ -143,7 +143,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
                 key={u.id}
                 title={u.name}
                 style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length], zIndex: 3 - i }}
-                className="relative w-5 h-5 rounded-full border border-white/80 flex items-center justify-center text-[9px] font-bold text-white"
+                className="relative w-5 h-5 rounded-full border border-brand-border flex items-center justify-center text-[9px] font-bold text-white"
               >
                 {u.name.charAt(0).toUpperCase()}
               </div>
@@ -151,7 +151,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
             {card.assignees.length > 3 && (
               <div
                 style={{ zIndex: 0 }}
-                className="relative w-5 h-5 rounded-full border border-white/80 bg-atomic-gray-500 flex items-center justify-center text-[9px] font-bold text-white"
+                className="relative w-5 h-5 rounded-full border border-brand-border bg-brand-text-muted flex items-center justify-center text-[9px] font-bold text-white"
               >
                 +{card.assignees.length - 3}
               </div>

@@ -1,0 +1,293 @@
+/* ============================================================
+   TaskFlow — Design Tokens v1.0
+   Conceito: Slate Protocol
+   Gerado por MAXWELL (Design Systems Engineer) via /brand
+   Data: 2026-05-24
+   ============================================================ */
+
+/* ── TIER 1: PRIMITIVE TOKENS ──────────────────────────────── */
+:root {
+
+  /* Color — Slate (base da marca) */
+  --primitive-slate-950:  #070A10;
+  --primitive-slate-900:  #0B0E14;
+  --primitive-slate-800:  #0F1420;
+  --primitive-slate-700:  #131B2C;
+  --primitive-slate-600:  #1C2540;
+  --primitive-slate-500:  #243050;
+  --primitive-slate-400:  #3D5070;
+  --primitive-slate-300:  #527DA3;
+  --primitive-slate-200:  #7499BF;
+  --primitive-slate-100:  #A8BDD4;
+  --primitive-slate-50:   #D4E0EC;
+
+  /* Color — Neutral */
+  --primitive-neutral-900: #0D0F14;
+  --primitive-neutral-800: #151820;
+  --primitive-neutral-700: #1E222D;
+  --primitive-neutral-600: #2A3040;
+  --primitive-neutral-500: #3A4255;
+  --primitive-neutral-400: #4E5A6B;
+  --primitive-neutral-300: #6B7A8D;
+  --primitive-neutral-200: #8B95A8;
+  --primitive-neutral-100: #B8C2D0;
+  --primitive-neutral-50:  #E8ECF4;
+  --primitive-neutral-0:   #F5F7FA;
+
+  /* Color — Status (todos sóbrios) */
+  --primitive-green-900:  #0E1F18;
+  --primitive-green-800:  #1A3028;
+  --primitive-green-300:  #4A8C6F;
+  --primitive-green-100:  #7DC4A0;
+
+  --primitive-amber-900:  #1E1508;
+  --primitive-amber-800:  #2E2010;
+  --primitive-amber-300:  #A08050;
+  --primitive-amber-100:  #C9A870;
+
+  --primitive-red-900:    #1E0808;
+  --primitive-red-800:    #2E1010;
+  --primitive-red-600:    #501818;
+  --primitive-red-300:    #8C4A4A;
+  --primitive-red-100:    #C47070;
+
+  /* Typography */
+  --primitive-font-sans: 'Roboto', system-ui, -apple-system, sans-serif;
+  --primitive-font-mono: 'Roboto Mono', 'Courier New', monospace;
+
+  /* Spacing base 4px */
+  --primitive-space-1:   4px;
+  --primitive-space-2:   8px;
+  --primitive-space-3:  12px;
+  --primitive-space-4:  16px;
+  --primitive-space-5:  20px;
+  --primitive-space-6:  24px;
+  --primitive-space-8:  32px;
+  --primitive-space-10: 40px;
+  --primitive-space-12: 48px;
+  --primitive-space-16: 64px;
+
+  /* Border Radius */
+  --primitive-radius-xs:   2px;
+  --primitive-radius-sm:   4px;
+  --primitive-radius-md:   6px;
+  --primitive-radius-lg:   8px;
+  --primitive-radius-xl:  12px;
+  --primitive-radius-full: 9999px;
+
+  /* Motion */
+  --primitive-duration-fast:   100ms;
+  --primitive-duration-base:   150ms;
+  --primitive-duration-slow:   250ms;
+  --primitive-duration-slower: 400ms;
+  --primitive-ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+  --primitive-ease-in:    cubic-bezier(0.4, 0, 1, 1);
+  --primitive-ease-out:   cubic-bezier(0, 0, 0.2, 1);
+}
+
+
+/* ── TIER 2: SEMANTIC TOKENS ───────────────────────────────── */
+:root {
+
+  /* Backgrounds */
+  --color-bg-base:          var(--primitive-slate-900);
+  --color-bg-subtle:        var(--primitive-slate-950);
+  --color-surface:          var(--primitive-neutral-800);
+  --color-surface-elevated: var(--primitive-neutral-700);
+  --color-surface-overlay:  var(--primitive-neutral-600);
+
+  /* Borders */
+  --color-border:           var(--primitive-neutral-600);
+  --color-border-subtle:    var(--primitive-neutral-700);
+  --color-border-strong:    var(--primitive-neutral-500);
+
+  /* Text */
+  --color-text-primary:   var(--primitive-neutral-50);
+  --color-text-secondary: var(--primitive-neutral-200);
+  --color-text-muted:     var(--primitive-neutral-400);
+  --color-text-inverse:   var(--primitive-neutral-900);
+
+  /* Accent */
+  --color-accent:           var(--primitive-slate-300);
+  --color-accent-hover:     var(--primitive-slate-200);
+  --color-accent-muted:     var(--primitive-slate-500);
+  --color-accent-fg:        var(--primitive-neutral-0);
+
+  /* Status */
+  --color-success:          var(--primitive-green-300);
+  --color-success-subtle:   var(--primitive-green-800);
+  --color-success-fg:       var(--primitive-green-100);
+
+  --color-warning:          var(--primitive-amber-300);
+  --color-warning-subtle:   var(--primitive-amber-800);
+  --color-warning-fg:       var(--primitive-amber-100);
+
+  --color-error:            var(--primitive-red-300);
+  --color-error-subtle:     var(--primitive-red-800);
+  --color-error-fg:         var(--primitive-red-100);
+
+  /* Typography */
+  --font-sans: var(--primitive-font-sans);
+  --font-mono: var(--primitive-font-mono);
+
+  /* Type scale */
+  --text-display:  2.25rem;
+  --text-h1:        1.5rem;
+  --text-h2:       1.25rem;
+  --text-h3:          1rem;
+  --text-body-lg:     1rem;
+  --text-body:     0.875rem;
+  --text-body-sm:  0.75rem;
+  --text-label:    0.75rem;
+  --text-code:   0.8125rem;
+
+  /* Spacing semântico */
+  --space-xs:  var(--primitive-space-1);
+  --space-sm:  var(--primitive-space-2);
+  --space-md:  var(--primitive-space-3);
+  --space-lg:  var(--primitive-space-4);
+  --space-xl:  var(--primitive-space-6);
+  --space-2xl: var(--primitive-space-8);
+  --space-3xl: var(--primitive-space-12);
+
+  /* Border radius semântico */
+  --radius-badge:  var(--primitive-radius-sm);
+  --radius-button: var(--primitive-radius-md);
+  --radius-input:  var(--primitive-radius-md);
+  --radius-card:   var(--primitive-radius-lg);
+  --radius-modal:  var(--primitive-radius-xl);
+  --radius-avatar: var(--primitive-radius-full);
+
+  /* Motion semântico */
+  --duration-hover:      var(--primitive-duration-fast);
+  --duration-transition: var(--primitive-duration-base);
+  --duration-animation:  var(--primitive-duration-slow);
+  --ease-default:        var(--primitive-ease-brand);
+
+  /* Shadows */
+  --shadow-card:   0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-raised: 0 4px 8px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-modal:  0 20px 40px rgba(0,0,0,0.65), 0 8px 16px rgba(0,0,0,0.4);
+  --shadow-focus:  0 0 0 3px rgba(82, 125, 163, 0.35);
+}
+
+
+/* ── TIER 3: COMPONENT TOKENS ──────────────────────────────── */
+:root {
+
+  /* Button Primary */
+  --btn-primary-bg:           var(--color-accent);
+  --btn-primary-bg-hover:     var(--color-accent-hover);
+  --btn-primary-bg-active:    var(--primitive-slate-400);
+  --btn-primary-bg-disabled:  var(--color-accent-muted);
+  --btn-primary-text:         var(--color-accent-fg);
+  --btn-primary-text-disabled:var(--color-text-muted);
+
+  /* Button Secondary */
+  --btn-secondary-bg:            var(--color-surface);
+  --btn-secondary-bg-hover:      var(--color-surface-elevated);
+  --btn-secondary-bg-active:     var(--color-surface-overlay);
+  --btn-secondary-bg-disabled:   var(--color-bg-subtle);
+  --btn-secondary-text:          var(--color-text-primary);
+  --btn-secondary-text-disabled: var(--color-text-muted);
+  --btn-secondary-border:        var(--color-border);
+
+  /* Button Ghost */
+  --btn-ghost-bg:         transparent;
+  --btn-ghost-bg-hover:   var(--color-surface);
+  --btn-ghost-text:       var(--color-text-secondary);
+  --btn-ghost-text-hover: var(--color-text-primary);
+
+  /* Button Danger */
+  --btn-danger-bg:         var(--color-error-subtle);
+  --btn-danger-bg-hover:   var(--primitive-red-600);
+  --btn-danger-text:       var(--color-error);
+  --btn-danger-text-hover: var(--color-error-fg);
+  --btn-danger-border:     var(--color-error);
+
+  /* Input */
+  --input-bg:              var(--color-surface);
+  --input-bg-focus:        var(--color-surface-elevated);
+  --input-bg-disabled:     var(--color-bg-subtle);
+  --input-border:          var(--color-border);
+  --input-border-hover:    var(--color-border-strong);
+  --input-border-focus:    var(--color-accent);
+  --input-border-error:    var(--color-error);
+  --input-text:            var(--color-text-primary);
+  --input-placeholder:     var(--color-text-muted);
+  --input-text-disabled:   var(--color-text-muted);
+
+  /* Card */
+  --card-bg:               var(--color-surface);
+  --card-bg-hover:         var(--color-surface-elevated);
+  --card-border:           var(--color-border-subtle);
+  --card-border-hover:     var(--color-border);
+  --card-shadow:           var(--shadow-card);
+
+  /* Kanban Card */
+  --kcard-bg:              var(--color-surface);
+  --kcard-bg-hover:        var(--color-surface-elevated);
+  --kcard-bg-dragging:     var(--color-surface-overlay);
+  --kcard-border:          var(--color-border-subtle);
+  --kcard-border-hover:    var(--color-accent-muted);
+  --kcard-shadow-dragging: var(--shadow-raised);
+
+  /* Kanban Column */
+  --column-bg:             var(--color-bg-subtle);
+  --column-border:         var(--color-border-subtle);
+  --column-header-text:    var(--color-text-secondary);
+  --column-drop-bg:        var(--color-accent-muted);
+  --column-drop-border:    var(--color-accent);
+
+  /* Badge */
+  --badge-default-bg:      var(--color-surface-elevated);
+  --badge-default-text:    var(--color-text-secondary);
+  --badge-accent-bg:       var(--color-accent-muted);
+  --badge-accent-text:     var(--color-accent);
+  --badge-success-bg:      var(--color-success-subtle);
+  --badge-success-text:    var(--color-success);
+  --badge-warning-bg:      var(--color-warning-subtle);
+  --badge-warning-text:    var(--color-warning);
+  --badge-error-bg:        var(--color-error-subtle);
+  --badge-error-text:      var(--color-error);
+
+  /* Sidebar */
+  --sidebar-bg:                 var(--color-bg-subtle);
+  --sidebar-border:             var(--color-border-subtle);
+  --sidebar-item-text:          var(--color-text-secondary);
+  --sidebar-item-text-hover:    var(--color-text-primary);
+  --sidebar-item-text-active:   var(--color-text-primary);
+  --sidebar-item-bg-hover:      var(--color-surface);
+  --sidebar-item-bg-active:     var(--color-surface);
+  --sidebar-item-accent-active: var(--color-accent);
+
+  /* TopBar */
+  --topbar-bg:     var(--color-bg-base);
+  --topbar-border: var(--color-border-subtle);
+  --topbar-text:   var(--color-text-secondary);
+
+  /* Modal */
+  --modal-bg:      var(--color-surface-elevated);
+  --modal-border:  var(--color-border);
+  --modal-shadow:  var(--shadow-modal);
+  --modal-overlay: rgba(7, 10, 16, 0.80);
+
+  /* KPI Card */
+  --kpi-bg:            var(--color-surface);
+  --kpi-border:        var(--color-border-subtle);
+  --kpi-value-text:    var(--color-text-primary);
+  --kpi-label-text:    var(--color-text-secondary);
+  --kpi-trend-up:      var(--color-success);
+  --kpi-trend-down:    var(--color-error);
+  --kpi-trend-neutral: var(--color-text-muted);
+
+  /* Data Table */
+  --table-bg:             var(--color-surface);
+  --table-border:         var(--color-border-subtle);
+  --table-header-bg:      var(--color-bg-subtle);
+  --table-header-text:    var(--color-text-secondary);
+  --table-header-border:  var(--color-border);
+  --table-row-hover:      var(--color-surface-elevated);
+  --table-row-selected:   var(--color-accent-muted);
+  --table-row-selected-border: var(--color-accent);
+}

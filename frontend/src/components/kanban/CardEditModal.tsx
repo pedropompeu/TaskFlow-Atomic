@@ -8,14 +8,17 @@ import {
   ArrowRightLeft,
   Calendar,
   Check,
+  CheckSquare,
   Clock,
   Download,
+  ListChecks,
   MessageSquare,
   Paperclip,
   Pencil,
   Plus,
   PlusCircle,
   Send,
+  Square,
   Tag,
   Trash2,
   Upload,
@@ -31,14 +34,29 @@ import { cardsKey, useAddAssignee, useRemoveAssignee } from '@/hooks/useCards';
 import { useMembers } from '@/hooks/useMembers';
 import { useCreateComment, useDeleteComment } from '@/hooks/useComments';
 import { useMe } from '@/hooks/useMe';
+import { useCreateChecklistItem, useUpdateChecklistItem, useDeleteChecklistItem } from '@/hooks/useChecklist';
+import { boardTagsKey } from '@/hooks/useBoardTags';
+import { TagPickerPanel } from './TagPickerPanel';
 import { cn } from '@/lib/utils';
 import { PRIORITY_META, type Card, type CardPriority } from '@/types';
 
 const AVATAR_COLORS = ['#F78E2F', '#A559FD', '#43AC8D', '#1D84B7', '#FDCC32'];
 
 const ACCENT_COLORS = [
-  '#F78E2F', '#A559FD', '#43AC8D', '#1D84B7',
-  '#FDCC32', '#EF4444', '#EC4899', '#6B7280',
+  // Slate Protocol palette
+  '#527DA3',  // Slate accent
+  '#7499BF',  // Slate lighter
+  '#A8BDD4',  // Slate soft
+  '#4A8C6F',  // Success green
+  '#7DC4A0',  // Green light
+  '#C9A870',  // Amber
+  '#C47070',  // Error red
+  '#8C4A4A',  // Deep red
+  // Complementares
+  '#A559FD',  // Violeta
+  '#FDCC32',  // Âmbar vivo
+  '#4E5A6B',  // Cinza médio
+  '#6B7A8D',  // Cinza claro
 ];
 
 interface CardEditModalProps {
@@ -50,16 +68,16 @@ interface CardEditModalProps {
 function ActionIcon({ action }: { action: string }) {
   const base = 'shrink-0';
   switch (action) {
-    case 'created':          return <PlusCircle    size={14} className={cn(base, 'text-green-500')} />;
-    case 'moved':            return <ArrowRightLeft size={14} className={cn(base, 'text-blue-500')} />;
-    case 'assigned':         return <UserCheck      size={14} className={cn(base, 'text-atomic-orange')} />;
-    case 'unassigned':       return <UserMinus      size={14} className={cn(base, 'text-stone-400')} />;
-    case 'updated':          return <Pencil         size={14} className={cn(base, 'text-stone-500')} />;
-    case 'attachment_added': return <Paperclip      size={14} className={cn(base, 'text-stone-500')} />;
-    case 'tag_added':        return <Tag            size={14} className={cn(base, 'text-purple-500')} />;
-    case 'tag_removed':      return <Tag            size={14} className={cn(base, 'text-stone-400')} />;
-    case 'due_date_set':     return <Calendar       size={14} className={cn(base, 'text-atomic-orange')} />;
-    default:                 return <div className="w-2 h-2 rounded-full bg-stone-300 m-auto" />;
+    case 'created':          return <PlusCircle    size={14} className={cn(base, 'text-brand-success')} />;
+    case 'moved':            return <ArrowRightLeft size={14} className={cn(base, 'text-brand-accent')} />;
+    case 'assigned':         return <UserCheck      size={14} className={cn(base, 'text-brand-accent-hover')} />;
+    case 'unassigned':       return <UserMinus      size={14} className={cn(base, 'text-brand-text-muted')} />;
+    case 'updated':          return <Pencil         size={14} className={cn(base, 'text-brand-text-muted')} />;
+    case 'attachment_added': return <Paperclip      size={14} className={cn(base, 'text-brand-text-secondary')} />;
+    case 'tag_added':        return <Tag            size={14} className={cn(base, 'text-brand-accent')} />;
+    case 'tag_removed':      return <Tag            size={14} className={cn(base, 'text-brand-text-muted')} />;
+    case 'due_date_set':     return <Calendar       size={14} className={cn(base, 'text-brand-warning')} />;
+    default:                 return <div className="w-2 h-2 rounded-full bg-brand-border-strong m-auto" />;
   }
 }
 
@@ -75,10 +93,10 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description ?? '');
-  const [newTagName, setNewTagName] = useState('');
-  const [newTagColor, setNewTagColor] = useState('#6B7280');
+  const [showTagPicker, setShowTagPicker] = useState(false);
   const [descSaveState, setDescSaveState] = useState<'idle' | 'saved' | 'error'>('idle');
   const [newComment, setNewComment] = useState('');
+  const [newChecklistText, setNewChecklistText] = useState('');
 
   const { data: detail = card } = useQuery({
     queryKey: ['card', card.id],
@@ -92,6 +110,9 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const createComment = useCreateComment(card.id, boardId);
   const deleteComment = useDeleteComment(card.id, boardId);
   const { data: me } = useMe();
+  const createChecklistItem = useCreateChecklistItem(card.id);
+  const updateChecklistItem = useUpdateChecklistItem(card.id);
+  const deleteChecklistItem = useDeleteChecklistItem(card.id);
 
   const allMembers = members ? [members.owner, ...members.members] : [];
   const assignedIds = new Set(detail.assignees?.map((a) => a.id) ?? []);
@@ -100,6 +121,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: cardsKey(boardId) });
     qc.invalidateQueries({ queryKey: ['card', card.id] });
+    qc.invalidateQueries({ queryKey: boardTagsKey(boardId) });
   };
 
   const updateCard = useMutation({
@@ -173,7 +195,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18 }}
-      className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 pt-14 overflow-y-auto"
+      className="fixed inset-0 bg-black/70 z-50 flex items-start justify-center p-4 pt-14 overflow-y-auto"
       onClick={onClose}
     >
       <motion.div
@@ -181,20 +203,20 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 16, scale: 0.97 }}
         transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mb-8"
+        className="bg-brand-surface-elevated border border-brand-border rounded-2xl shadow-brand-modal w-full max-w-3xl mb-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-stone-100">
+        <div className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-brand-border-subtle">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={handleTitleBlur}
-            className="flex-1 text-xl font-bold text-stone-900 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-orange-500 rounded px-1 -mx-1"
+            className="flex-1 text-xl font-bold text-brand-text-primary bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-brand-accent rounded px-1 -mx-1"
           />
           <button
             onClick={onClose}
-            className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors shrink-0"
+            className="p-1.5 text-brand-text-muted hover:text-brand-text-primary hover:bg-brand-surface rounded-lg transition-colors shrink-0"
           >
             <X size={18} />
           </button>
@@ -207,7 +229,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
 
             {/* Description */}
             <section>
-              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-2">
                 Descrição
               </h4>
               <textarea
@@ -215,19 +237,19 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Adicione uma descrição detalhada…"
                 rows={4}
-                className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-y"
+                className="w-full px-3 py-2 text-sm bg-brand-surface border border-brand-border rounded-lg text-brand-text-primary placeholder-brand-text-muted focus:outline-none focus:border-brand-accent resize-y"
               />
               {(descriptionDirty || descSaveState !== 'idle') && (
                 <button
                   onClick={handleDescriptionSave}
                   disabled={updateCard.isPending || descSaveState === 'saved'}
                   className={cn(
-                    'mt-1.5 px-3 py-1.5 text-white text-xs font-medium rounded-lg transition-all flex items-center gap-1.5',
+                    'mt-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5',
                     descSaveState === 'error'
-                      ? 'bg-red-500 animate-shake'
+                      ? 'bg-brand-error-subtle text-brand-error animate-shake'
                       : descSaveState === 'saved'
-                      ? 'bg-green-600'
-                      : 'bg-orange-600 hover:bg-orange-700',
+                      ? 'bg-brand-success-subtle text-brand-success-fg'
+                      : 'bg-brand-accent text-brand-accent-fg hover:bg-brand-accent-hover',
                     updateCard.isPending && 'opacity-60',
                   )}
                 >
@@ -246,93 +268,236 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
 
             {/* Tags */}
             <section>
-              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                <Tag size={11} /> Tags
-              </h4>
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {detail.tags?.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full tracking-wide transition-opacity hover:opacity-75"
-                    style={{
-                      backgroundColor: `${tag.color}1A`,
-                      color: tag.color,
-                      border: `1px solid ${tag.color}40`,
-                    }}
-                  >
-                    {tag.name}
-                    <button
-                      onClick={() => removeTag.mutate(tag.id)}
-                      className="hover:opacity-70 transition-opacity"
-                      aria-label={`Remover tag ${tag.name}`}
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider flex items-center gap-1">
+                  <Tag size={11} /> Tags
+                </h4>
+                <button
+                  onClick={() => setShowTagPicker(true)}
+                  className="flex items-center gap-1 text-[11px] font-medium text-brand-text-muted hover:text-brand-accent transition-colors px-1.5 py-0.5 rounded hover:bg-brand-surface"
+                >
+                  <Plus size={11} /> Nova tag
+                </button>
+              </div>
+              {/* Tags ativas no card */}
+              {(detail.tags?.length ?? 0) > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {detail.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full tracking-wide"
+                      style={{
+                        backgroundColor: `${tag.color}1A`,
+                        color: tag.color,
+                        border: `1px solid ${tag.color}40`,
+                      }}
                     >
-                      <X size={9} />
-                    </button>
+                      {tag.name}
+                      <button
+                        onClick={() => removeTag.mutate(tag.id)}
+                        className="hover:opacity-70 transition-opacity"
+                        aria-label={`Remover tag ${tag.name}`}
+                      >
+                        <X size={9} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowTagPicker(true)}
+                  className="text-xs text-brand-text-muted hover:text-brand-accent transition-colors"
+                >
+                  Nenhuma tag — clique em Nova tag para adicionar
+                </button>
+              )}
+            </section>
+
+            {/* Checklist */}
+            <section>
+              <h4 className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-2 flex items-center gap-1">
+                <ListChecks size={11} /> Checklist
+                {(detail.checklists?.length ?? 0) > 0 && (
+                  <span className="ml-1 text-brand-text-muted font-normal normal-case">
+                    ({detail.checklists.filter((i) => i.done).length}/{detail.checklists.length})
                   </span>
+                )}
+              </h4>
+              {/* Barra de progresso */}
+              {(detail.checklists?.length ?? 0) > 0 && (
+                <div className="w-full h-1.5 bg-brand-surface rounded-full mb-2 overflow-hidden">
+                  <div
+                    className="h-full bg-brand-accent rounded-full transition-all"
+                    style={{
+                      width: `${(detail.checklists.filter((i) => i.done).length / detail.checklists.length) * 100}%`,
+                    }}
+                  />
+                </div>
+              )}
+              {/* Itens */}
+              <div className="space-y-1 mb-2">
+                {detail.checklists?.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 group">
+                    <button
+                      onClick={() => updateChecklistItem.mutate({ itemId: item.id, done: !item.done })}
+                      className="shrink-0 text-brand-text-muted hover:text-brand-accent transition-colors"
+                      aria-label={item.done ? 'Desmarcar' : 'Marcar como feito'}
+                    >
+                      {item.done
+                        ? <CheckSquare size={15} className="text-brand-accent" />
+                        : <Square size={15} />
+                      }
+                    </button>
+                    <span className={cn(
+                      'flex-1 text-sm text-brand-text-secondary leading-snug',
+                      item.done && 'line-through text-brand-text-muted',
+                    )}>
+                      {item.text}
+                    </span>
+                    <button
+                      onClick={() => deleteChecklistItem.mutate(item.id)}
+                      className="opacity-0 group-hover:opacity-100 p-0.5 text-brand-text-muted hover:text-brand-error transition-all shrink-0"
+                      aria-label="Remover item"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
                 ))}
               </div>
+              {/* Input novo item */}
               <div className="flex gap-1.5">
                 <input
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
+                  value={newChecklistText}
+                  onChange={(e) => setNewChecklistText(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newTagName.trim()) {
-                      addTag.mutate({ name: newTagName.trim(), color: newTagColor });
+                    if (e.key === 'Enter' && newChecklistText.trim()) {
+                      createChecklistItem.mutate(newChecklistText.trim(), {
+                        onSuccess: () => setNewChecklistText(''),
+                      });
                     }
                   }}
-                  placeholder="Nova tag…"
-                  className="flex-1 px-2.5 py-1.5 text-xs border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-                <input
-                  type="color"
-                  value={newTagColor}
-                  onChange={(e) => setNewTagColor(e.target.value)}
-                  className="w-8 h-8 rounded border border-stone-200 cursor-pointer p-0.5"
-                  title="Cor da tag"
+                  placeholder="Novo item…"
+                  className="flex-1 px-2.5 py-1.5 text-xs bg-brand-surface border border-brand-border rounded-lg text-brand-text-primary placeholder-brand-text-muted focus:outline-none focus:border-brand-accent"
                 />
                 <button
                   onClick={() =>
-                    newTagName.trim() &&
-                    addTag.mutate({ name: newTagName.trim(), color: newTagColor })
+                    newChecklistText.trim() &&
+                    createChecklistItem.mutate(newChecklistText.trim(), {
+                      onSuccess: () => setNewChecklistText(''),
+                    })
                   }
-                  disabled={!newTagName.trim() || addTag.isPending}
-                  className="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200 disabled:opacity-50 transition-colors"
-                  aria-label="Adicionar tag"
+                  disabled={!newChecklistText.trim() || createChecklistItem.isPending}
+                  className="p-1.5 bg-brand-surface text-brand-text-secondary rounded-lg hover:bg-brand-surface-overlay disabled:opacity-50 transition-colors"
+                  aria-label="Adicionar item"
                 >
                   <Plus size={14} />
                 </button>
               </div>
             </section>
 
+            {/* Comentários */}
+            <section>
+              <h4 className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-3 flex items-center gap-1">
+                <MessageSquare size={11} /> Comentários
+                {(detail.comments?.length ?? 0) > 0 && (
+                  <span className="ml-1 text-brand-text-muted font-normal normal-case">
+                    ({detail.comments.length})
+                  </span>
+                )}
+              </h4>
+              {/* Input */}
+              <div className="flex gap-2 mb-3">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) handleSubmitComment();
+                  }}
+                  placeholder="Adicionar comentário… (Ctrl+Enter para enviar)"
+                  rows={2}
+                  className="flex-1 px-3 py-2 text-sm bg-brand-surface border border-brand-border rounded-lg text-brand-text-primary placeholder-brand-text-muted focus:outline-none focus:border-brand-accent resize-none"
+                />
+                <button
+                  onClick={handleSubmitComment}
+                  disabled={!newComment.trim() || createComment.isPending}
+                  className="self-end p-2 bg-brand-accent text-brand-accent-fg rounded-lg hover:bg-brand-accent-hover disabled:opacity-40 transition-colors shrink-0"
+                  aria-label="Enviar comentário"
+                >
+                  <Send size={14} />
+                </button>
+              </div>
+              {/* Lista */}
+              {!detail.comments?.length ? (
+                <p className="text-sm text-brand-text-muted text-center py-2">Nenhum comentário ainda</p>
+              ) : (
+                <div className="space-y-3 max-h-40 overflow-y-auto pr-1">
+                  {detail.comments.map((comment) => (
+                    <div key={comment.id} className="flex items-start gap-2.5 group">
+                      <div className="w-6 h-6 rounded-full bg-brand-accent-muted flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-bold text-brand-accent">
+                          {comment.user?.name?.[0]?.toUpperCase() ?? '?'}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-xs font-semibold text-brand-text-primary">
+                            {comment.user?.name}
+                          </span>
+                          <span className="text-xs text-brand-text-muted">
+                            {formatDistanceToNow(parseISO(comment.createdAt), {
+                              addSuffix: true,
+                              locale: ptBR,
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-brand-text-secondary mt-0.5 whitespace-pre-wrap break-words">
+                          {comment.content}
+                        </p>
+                      </div>
+                      {(me?.id === comment.userId || me?.id === members?.owner?.id) && (
+                        <button
+                          onClick={() => deleteComment.mutate(comment.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-brand-text-muted hover:text-brand-error transition-all shrink-0 mt-0.5"
+                          aria-label="Excluir comentário"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
             {/* Attachments */}
             <section>
-              <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <h4 className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-2 flex items-center gap-1">
                 <Paperclip size={11} /> Anexos
               </h4>
               <div className="space-y-1.5 mb-2">
                 {detail.attachments?.map((att) => (
                   <div
                     key={att.id}
-                    className="flex items-center gap-2 bg-stone-50 rounded-lg px-3 py-2 group"
+                    className="flex items-center gap-2 bg-brand-surface rounded-lg px-3 py-2 group"
                   >
-                    <Paperclip size={13} className="text-stone-400 shrink-0" />
-                    <span className="flex-1 text-sm text-stone-700 truncate">
+                    <Paperclip size={13} className="text-brand-text-muted shrink-0" />
+                    <span className="flex-1 text-sm text-brand-text-primary truncate">
                       {att.originalName}
                     </span>
-                    <span className="text-xs text-stone-400 shrink-0">
+                    <span className="text-xs text-brand-text-muted shrink-0">
                       {(att.size / 1024).toFixed(0)} KB
                     </span>
                     <a
                       href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/uploads/${att.filename}`}
                       download={att.originalName}
-                      className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-atomic-orange transition-all"
+                      className="opacity-0 group-hover:opacity-100 text-brand-text-muted hover:text-brand-accent transition-all"
                       aria-label="Baixar anexo"
                     >
                       <Download size={13} />
                     </a>
                     <button
                       onClick={() => deleteAttachment.mutate(att.id)}
-                      className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-red-500 transition-all"
+                      className="opacity-0 group-hover:opacity-100 text-brand-text-muted hover:text-brand-error transition-all"
                       aria-label="Excluir anexo"
                     >
                       <Trash2 size={13} />
@@ -353,7 +518,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadAttachment.isPending}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs border border-dashed border-stone-300 rounded-lg text-stone-500 hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs border border-dashed border-brand-border rounded-lg text-brand-text-secondary hover:border-brand-accent hover:text-brand-accent disabled:opacity-50 transition-colors"
               >
                 <Upload size={13} />
                 {uploadAttachment.isPending ? 'Enviando…' : 'Anexar arquivo'}
@@ -364,7 +529,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
           {/* Right column — metadata */}
           <div className="w-52 shrink-0 space-y-5">
             <div>
-              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">
                 Responsáveis
               </label>
               <div className="flex flex-wrap gap-1.5 mb-2 min-h-[24px]">
@@ -394,7 +559,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                       e.target.value = '';
                     }
                   }}
-                  className="w-full px-2.5 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-stone-500"
+                  className="w-full px-2.5 py-2 text-sm border border-brand-border rounded-lg focus:outline-none focus:border-brand-accent bg-brand-surface text-brand-text-secondary"
                 >
                   <option value="">+ Adicionar…</option>
                   {availableToAdd.map((u) => (
@@ -405,7 +570,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">
                 Prioridade
               </label>
               <select
@@ -413,7 +578,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                 onChange={(e) =>
                   updateCard.mutate({ priority: e.target.value as CardPriority })
                 }
-                className="w-full px-2.5 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                className="w-full px-2.5 py-2 text-sm border border-brand-border rounded-lg focus:outline-none focus:border-brand-accent bg-brand-surface text-brand-text-primary"
               >
                 {Object.entries(PRIORITY_META).map(([k, v]) => (
                   <option key={k} value={k}>{v.label}</option>
@@ -422,10 +587,28 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-2">
                 Cor de destaque
               </label>
-              <div className="flex flex-wrap gap-1.5 items-center">
+              {/* Preview da cor atual */}
+              {detail.accentColor && (
+                <div
+                  className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-lg border border-brand-border-subtle bg-brand-surface"
+                  style={{ borderLeftColor: detail.accentColor, borderLeftWidth: 3 }}
+                >
+                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: detail.accentColor }} />
+                  <span className="text-[11px] font-mono text-brand-text-muted flex-1">{detail.accentColor}</span>
+                  <button
+                    title="Remover cor"
+                    onClick={() => updateCard.mutate({ accentColor: null })}
+                    className="text-brand-text-muted hover:text-brand-error transition-colors"
+                  >
+                    <X size={11} />
+                  </button>
+                </div>
+              )}
+              {/* Grade de swatches */}
+              <div className="grid grid-cols-6 gap-1.5">
                 {ACCENT_COLORS.map((color) => (
                   <button
                     key={color}
@@ -433,27 +616,34 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                     onClick={() => updateCard.mutate({ accentColor: color })}
                     style={{ backgroundColor: color }}
                     className={cn(
-                      'w-6 h-6 rounded-full transition-all hover:scale-110',
+                      'w-full aspect-square rounded-lg transition-all hover:scale-110 hover:brightness-110',
                       detail.accentColor === color
-                        ? 'ring-2 ring-offset-1 ring-stone-400'
-                        : 'opacity-80 hover:opacity-100',
+                        ? 'ring-2 ring-offset-1 ring-offset-brand-surface-elevated ring-white/60 scale-105'
+                        : 'opacity-75 hover:opacity-100',
                     )}
                   />
                 ))}
-                {detail.accentColor && (
-                  <button
-                    title="Remover cor"
-                    onClick={() => updateCard.mutate({ accentColor: null })}
-                    className="w-6 h-6 rounded-full border border-stone-300 bg-stone-100 flex items-center justify-center text-stone-400 hover:text-red-500 hover:border-red-300 transition-all"
-                  >
-                    <X size={10} />
-                  </button>
-                )}
+                {/* Color picker personalizado */}
+                <label
+                  title="Cor personalizada"
+                  className="w-full aspect-square rounded-lg border-2 border-dashed border-brand-border-subtle flex items-center justify-center cursor-pointer hover:border-brand-accent hover:bg-brand-accent-muted/20 transition-colors"
+                >
+                  <span className="text-brand-text-muted text-[11px] font-bold">+</span>
+                  <input
+                    type="color"
+                    className="sr-only"
+                    value={detail.accentColor ?? '#527DA3'}
+                    onChange={(e) => updateCard.mutate({ accentColor: e.target.value })}
+                  />
+                </label>
               </div>
+              <p className="text-[11px] text-brand-text-muted mt-1.5">
+                Define a cor da borda esquerda do card
+              </p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">
                 Prazo
               </label>
               <input
@@ -470,24 +660,24 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                       : undefined,
                   })
                 }
-                className="w-full px-2.5 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-2.5 py-2 text-sm border border-brand-border rounded-lg bg-brand-surface text-brand-text-primary focus:outline-none focus:border-brand-accent"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">
                 Status
               </label>
               <span
                 className={cn(
                   'inline-block text-xs font-medium px-2.5 py-1 rounded-full',
                   detail.status === 'done'
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-brand-success-subtle text-brand-success-fg'
                     : detail.status === 'in_review'
-                    ? 'bg-amber-100 text-amber-700'
+                    ? 'bg-brand-warning-subtle text-brand-warning-fg'
                     : detail.status === 'in_progress'
-                    ? 'bg-orange-100 text-orange-700'
-                    : 'bg-stone-100 text-stone-600',
+                    ? 'bg-brand-accent-muted text-brand-accent'
+                    : 'bg-brand-surface-elevated text-brand-text-muted',
                 )}
               >
                 {STATUS_LABEL[detail.status] ?? detail.status}
@@ -496,101 +686,25 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
           </div>
         </div>
 
-        {/* Comments */}
-        <div className="border-t border-stone-100 px-6 py-4">
-          <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-3 flex items-center gap-1">
-            <MessageSquare size={11} /> Comentários
-            {(detail.comments?.length ?? 0) > 0 && (
-              <span className="ml-1 text-stone-400 font-normal normal-case">
-                ({detail.comments.length})
-              </span>
-            )}
-          </h4>
-
-          {/* Input */}
-          <div className="flex gap-2 mb-4">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.ctrlKey) handleSubmitComment();
-              }}
-              placeholder="Adicionar comentário… (Ctrl+Enter para enviar)"
-              rows={2}
-              className="flex-1 px-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
-            />
-            <button
-              onClick={handleSubmitComment}
-              disabled={!newComment.trim() || createComment.isPending}
-              className="self-end p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-40 transition-colors shrink-0"
-              aria-label="Enviar comentário"
-            >
-              <Send size={14} />
-            </button>
-          </div>
-
-          {/* List */}
-          {!detail.comments?.length ? (
-            <p className="text-sm text-stone-400 text-center py-2">Nenhum comentário ainda</p>
-          ) : (
-            <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
-              {detail.comments.map((comment) => (
-                <div key={comment.id} className="flex items-start gap-2.5 group">
-                  <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] font-bold text-orange-600">
-                      {comment.user?.name?.[0]?.toUpperCase() ?? '?'}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-xs font-semibold text-stone-700">
-                        {comment.user?.name}
-                      </span>
-                      <span className="text-xs text-stone-400">
-                        {formatDistanceToNow(parseISO(comment.createdAt), {
-                          addSuffix: true,
-                          locale: ptBR,
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-sm text-stone-700 mt-0.5 whitespace-pre-wrap break-words">
-                      {comment.content}
-                    </p>
-                  </div>
-                  {(me?.id === comment.userId || me?.id === members?.owner?.id) && (
-                    <button
-                      onClick={() => deleteComment.mutate(comment.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-stone-400 hover:text-red-500 transition-all shrink-0 mt-0.5"
-                      aria-label="Excluir comentário"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* History — sempre visível */}
-        <div className="border-t border-stone-100 px-6 py-4">
-          <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+        <div className="border-t border-brand-border-subtle px-6 py-4">
+          <h4 className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-3 flex items-center gap-1">
             <Clock size={11} /> Atividade
           </h4>
           {!detail.history?.length ? (
-            <p className="text-sm text-stone-400 text-center py-3">Nenhuma atividade ainda</p>
+            <p className="text-sm text-brand-text-muted text-center py-3">Nenhuma atividade ainda</p>
           ) : (
             <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
               {detail.history.map((entry) => (
                 <div key={entry.id} className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-stone-50 border border-stone-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-6 h-6 rounded-full bg-brand-surface border border-brand-border-subtle flex items-center justify-center shrink-0 mt-0.5">
                     <ActionIcon action={entry.action} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm text-stone-700 leading-snug">
+                    <p className="text-sm text-brand-text-secondary leading-snug">
                       {entry.description}
                     </p>
-                    <p className="text-xs text-stone-400 mt-0.5">
+                    <p className="text-xs text-brand-text-muted mt-0.5">
                       {entry.user?.name} ·{' '}
                       {formatDistanceToNow(parseISO(entry.createdAt), {
                         addSuffix: true,
@@ -604,6 +718,18 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
           )}
         </div>
       </motion.div>
+
+      {/* Tag Picker Panel */}
+      {showTagPicker && (
+        <TagPickerPanel
+          boardId={boardId}
+          cardTags={detail.tags ?? []}
+          onAdd={(name, color) => addTag.mutate({ name, color })}
+          onRemove={(tagId) => removeTag.mutate(tagId)}
+          onClose={() => setShowTagPicker(false)}
+          isPending={addTag.isPending || removeTag.isPending}
+        />
+      )}
     </motion.div>
   );
 }

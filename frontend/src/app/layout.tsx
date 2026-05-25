@@ -25,8 +25,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${roboto.variable} ${cabin.variable}`}>
-      <body className="font-sans bg-atomic-ice text-atomic-dark antialiased">
+    <html lang="pt-BR" className={`${roboto.variable} ${cabin.variable} bg-brand-bg`}>
+      <body className="font-sans text-brand-text-primary antialiased">
         <PersistentVideoBackground />
         <Providers>{children}</Providers>
       </body>

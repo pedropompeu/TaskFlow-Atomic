@@ -39,25 +39,25 @@ export function KanbanColumn({
     <div className="flex flex-col w-72 shrink-0 snap-start">
 
       {/* ── Header ── */}
-      <div className={cn('bg-white/70 backdrop-blur-md rounded-t-xl border border-b-0 border-white/40 border-t-4 px-3 pt-2.5 pb-2 shadow-sm', accent)}>
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-atomic-dark/80">{title}</h3>
-          <span className="text-xs bg-atomic-ice text-atomic-gray-500 font-medium px-1.5 py-0.5 rounded-full">
+      <div className={cn('bg-brand-surface rounded-t-xl border border-b-0 border-brand-border-subtle border-t-[3px] px-3 pt-3 pb-2.5', accent)}>
+        <div className="flex items-center justify-between mb-2.5">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.07em] text-brand-text-muted">{title}</h3>
+          <span className="min-w-[20px] h-[18px] flex items-center justify-center text-[11px] font-bold tabular-nums bg-brand-surface-elevated text-brand-text-muted px-1.5 rounded-full">
             {cards.length}
           </span>
         </div>
 
         {/* Barra de progresso WIP */}
-        <div className="h-1 bg-atomic-gray-300/30 rounded-full overflow-hidden">
+        <div className="h-1 bg-brand-border-subtle rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-700 ease-out"
             style={{
               width: `${progress}%`,
               background: progress >= 100
-                ? '#A559FD'
+                ? '#7499BF'
                 : progress >= 60
-                ? '#F78E2F'
-                : '#43AC8D',
+                ? '#C9A870'
+                : '#4A8C6F',
             }}
           />
         </div>
@@ -67,9 +67,9 @@ export function KanbanColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          'flex-1 min-h-[120px] bg-white/50 backdrop-blur-md rounded-b-xl border border-white/30 p-2 space-y-2 shadow-sm',
-          'transition-all duration-200',
-          isOver && 'bg-atomic-orange/15 border-atomic-orange/40 shadow-[inset_0_0_20px_rgba(247,142,47,0.12)]',
+          'flex-1 min-h-[140px] bg-brand-subtle rounded-b-xl border border-brand-border-subtle p-2 space-y-2',
+          'transition-all duration-150',
+          isOver && 'bg-brand-accent-muted/50 border-brand-accent/60',
         )}
       >
         <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
@@ -92,10 +92,10 @@ export function KanbanColumn({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex items-center justify-center h-16 animate-column-breathe"
+              transition={{ duration: 0.25 }}
+              className="flex items-center justify-center h-20"
             >
-              <span className="text-xs text-atomic-gray-500/60 select-none">solte aqui</span>
+              <span className="text-[11px] text-brand-text-muted/40 select-none tracking-wide">· · ·</span>
             </motion.div>
           )}
         </AnimatePresence>
