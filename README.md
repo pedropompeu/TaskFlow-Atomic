@@ -66,11 +66,8 @@ cp .env.example .env
 #   - Troque JWT_ACCESS_SECRET e JWT_REFRESH_SECRET (obrigatório em produção)
 #   - Preencha MAIL_USER e MAIL_PASS (Mailtrap) para testar e-mails
 
-# 3. Suba todos os serviços
+# 3. Suba todos os serviços — migrations rodam automaticamente
 docker compose up --build
-
-# 4. Em outro terminal, rode as migrations (apenas no primeiro uso)
-docker compose exec backend npm run migration:run
 ```
 
 Acesse:
@@ -89,7 +86,7 @@ docker compose down
 docker compose down -v
 ```
 
-> **Migrations automáticas:** o backend usa `synchronize: false`. Sempre que houver novas migrations (após `git pull`), rode `docker compose exec backend npm run migration:run` antes de usar a aplicação.
+> **Migrations automáticas:** o backend usa `synchronize: false`. As migrations pendentes são aplicadas automaticamente a cada `docker compose up` — basta reiniciar o backend após um `git pull`.
 
 ---
 
