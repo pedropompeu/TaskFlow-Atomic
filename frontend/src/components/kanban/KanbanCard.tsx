@@ -96,7 +96,7 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
 
       {/* Title */}
       <p
-        className="text-sm font-medium text-brand-text-primary mb-2.5 leading-snug cursor-pointer hover:text-brand-accent transition-colors"
+        className="inline-block text-sm font-medium text-brand-text-primary mb-2.5 leading-snug cursor-pointer hover:text-brand-accent transition-colors bg-white/[0.04] rounded-md px-2 py-1 -mx-1"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => { e.stopPropagation(); onEdit(card); }}
       >
