@@ -63,7 +63,6 @@ export function KanbanCard({ card, onDelete, onEdit }: KanbanCardProps) {
           : '0 1px 2px rgba(0,0,0,0.38), 0 2px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)',
         zIndex: isDragging ? 50 : 'auto',
       }}
-      exit={{ opacity: 0, x: 40, scale: 0.92 }}
       transition={{
         layout:  { type: 'spring', stiffness: 300, damping: 28 },
         opacity: { duration: 0.15 },
