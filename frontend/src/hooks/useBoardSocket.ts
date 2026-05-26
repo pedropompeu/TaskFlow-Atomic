@@ -50,7 +50,9 @@ export function useBoardSocket(boardId: string) {
     });
 
     return () => {
-      socket.emit('leave-board', { boardId });
+      if (socket.connected) {
+        socket.emit('leave-board', { boardId });
+      }
       socket.disconnect();
       socketRef.current = null;
       setOnlineUsers([]);

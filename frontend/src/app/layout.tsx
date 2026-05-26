@@ -16,6 +16,7 @@ const cabin = Cabin({
   weight: ['400', '700'],
   variable: '--font-cabin',
   display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {

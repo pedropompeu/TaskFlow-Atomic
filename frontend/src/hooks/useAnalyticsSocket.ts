@@ -39,7 +39,9 @@ export function useAnalyticsSocket(boardIds: string[]) {
     });
 
     return () => {
-      boardIds.forEach((id) => socket.emit('unwatch-board', { boardId: id }));
+      if (socket.connected) {
+        boardIds.forEach((id) => socket.emit('unwatch-board', { boardId: id }));
+      }
       socket.disconnect();
       socketRef.current = null;
       setIsConnected(false);
