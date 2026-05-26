@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-taskflow}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-taskflow} -d ${POSTGRES_DB:-taskflow_db}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,7 +35,7 @@ services:
     container_name: taskflow-backend
     restart: unless-stopped
     env_file: .env
-    command: sh -c "npm run migration:run && npm run start:dev"
+    command: sh -c "npx typeorm migration:run -d dist/database/data-source.js && node dist/main"
     ports:
       - '${BACKEND_PORT:-3001}:3001'
     depends_on:
@@ -44,8 +44,6 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./backend:/app
-      - /app/node_modules
       - uploads:/app/uploads
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/health || exit 1']
@@ -58,18 +56,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
     container_name: taskflow-frontend
     restart: unless-stopped
-    env_file: .env
     ports:
       - '${FRONTEND_PORT:-3000}:3000'
     depends_on:
       backend:
         condition: service_healthy
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000 || exit 1']
       interval: 20s

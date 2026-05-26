@@ -458,9 +458,9 @@ export default function AnalyticsPage() {
       {/* ── Tabs ── */}
       <div className="flex gap-1 border-b border-brand-border-subtle">
         {([
-          ['dashboard', 'Dashboard',  <LayoutGrid size={13} />],
-          ['activity',  'Atividade',  <Clock      size={13} />],
-        ] as const).map(([id, label, icon]) => (
+          { id: 'dashboard', label: 'Dashboard', Icon: LayoutGrid },
+          { id: 'activity',  label: 'Atividade',  Icon: Clock      },
+        ] as const).map(({ id, label, Icon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
@@ -471,7 +471,7 @@ export default function AnalyticsPage() {
                 : 'border-transparent text-brand-text-muted hover:text-brand-text-primary',
             )}
           >
-            {icon}{label}
+            <Icon size={13} />{label}
           </button>
         ))}
       </div>

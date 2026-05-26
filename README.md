@@ -66,9 +66,11 @@ cp .env.example .env
 #   - Troque JWT_ACCESS_SECRET e JWT_REFRESH_SECRET (obrigatório em produção)
 #   - Preencha MAIL_USER e MAIL_PASS (Mailtrap) para testar e-mails
 
-# 3. Suba todos os serviços — migrations rodam automaticamente
+# 3. Suba todos os serviços (build de produção + migrations automáticas)
 docker compose up --build
 ```
+
+> **Primeira execução:** o build de produção leva alguns minutos (compilação TypeScript + Next.js). As execuções seguintes (`docker compose up`) sobem em segundos pois usam a imagem em cache.
 
 Acesse:
 

@@ -132,7 +132,7 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const addTag = useMutation({
     mutationFn: (data: { name: string; color: string }) =>
       api.post(`/cards/${card.id}/tags`, data),
-    onSuccess: () => { invalidate(); setNewTagName(''); },
+    onSuccess: () => { invalidate(); },
   });
 
   const removeTag = useMutation({
