@@ -56,7 +56,7 @@ export function TagPickerPanel({
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={(e) => { e.stopPropagation(); onClose(); }}
     >
       <div
         className="bg-brand-surface-elevated border border-brand-border rounded-xl shadow-brand-modal w-full max-w-xs p-4"

@@ -68,7 +68,13 @@ export class CardsService {
     if (!board) throw new NotFoundException('Board not found');
     if (!await this.canAccessBoard(boardId, userId)) throw new ForbiddenException();
 
-    const card = this.cardRepository.create({ ...dto, boardId, createdById: userId });
+    const defaultDueDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const card = this.cardRepository.create({
+      ...dto,
+      boardId,
+      createdById: userId,
+      dueDate: dto.dueDate ? new Date(dto.dueDate) : defaultDueDate,
+    });
     const saved = await this.cardRepository.save(card);
 
     await this.historyRepository.save(

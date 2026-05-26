@@ -162,10 +162,14 @@ export function KanbanBoard({ boardId, onEditCard, filterText = '', filterUserId
     ) as CardStatus | undefined;
 
     if (finalCol && finalCol !== draggedCard.status) {
-      // Cross-column: change status and persist the new column order
-      updateCard.mutate({ id: draggedCard.id, status: finalCol });
+      // Cross-column: keep local state visible until the cache is updated to avoid flicker.
+      // setLocalCards(null) is deferred to onSettled so byStatus already reflects the new
+      // status (from useUpdateCard's onMutate) by the time the component re-renders.
+      updateCard.mutate(
+        { id: draggedCard.id, status: finalCol },
+        { onSettled: () => setLocalCards(null) },
+      );
       reorderCards.mutate(localCards[finalCol].map((c) => c.id));
-      setLocalCards(null);
       return;
     }
 

@@ -91,6 +91,7 @@ const STATUS_LABEL: Record<string, string> = {
 export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dueDateRef   = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description ?? '');
   const [showTagPicker, setShowTagPicker] = useState(false);
@@ -156,6 +157,15 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
       api.delete(`/cards/${card.id}/attachments/${attachmentId}`),
     onSuccess: invalidate,
   });
+
+  function handleDueDateChange() {
+    const val = dueDateRef.current?.value ?? '';
+    if (!val) return; // partial fill — wait for blur to clear
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) {
+      updateCard.mutate({ dueDate: d.toISOString() });
+    }
+  }
 
   function handleTitleBlur() {
     const t = title.trim();
@@ -647,19 +657,16 @@ export function CardEditModal({ card, boardId, onClose }: CardEditModalProps) {
                 Prazo
               </label>
               <input
+                key={detail.dueDate ?? 'no-due'}
+                ref={dueDateRef}
                 type="datetime-local"
-                defaultValue={
-                  detail.dueDate
-                    ? format(parseISO(detail.dueDate), "yyyy-MM-dd'T'HH:mm")
-                    : ''
-                }
-                onChange={(e) =>
-                  updateCard.mutate({
-                    dueDate: e.target.value
-                      ? new Date(e.target.value).toISOString()
-                      : undefined,
-                  })
-                }
+                defaultValue={detail.dueDate ? format(parseISO(detail.dueDate), "yyyy-MM-dd'T'HH:mm") : ''}
+                onChange={handleDueDateChange}
+                onBlur={() => {
+                  if (!dueDateRef.current?.value) {
+                    updateCard.mutate({ dueDate: undefined });
+                  }
+                }}
                 className="w-full px-2.5 py-2 text-sm border border-brand-border rounded-lg bg-brand-surface text-brand-text-primary focus:outline-none focus:border-brand-accent"
               />
             </div>

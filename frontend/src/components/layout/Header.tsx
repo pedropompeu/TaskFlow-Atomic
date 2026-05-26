@@ -29,7 +29,7 @@ export function Header() {
     <header className="fixed top-6 left-0 right-0 z-50 px-4">
 
       {/* ── Pílula principal ── */}
-      <div className="mx-auto max-w-[960px] bg-brand-surface/50 backdrop-blur-md rounded-2xl px-6 py-3 flex items-center justify-between shadow-lg">
+      <div className="mx-auto max-w-[960px] bg-brand-bg/85 backdrop-blur-md rounded-2xl px-6 py-3 flex items-center justify-between shadow-lg border border-white/[0.08]">
 
         {/* Logo oficial */}
         <a href="https://atomicgroup.com.br" target="_blank" rel="noopener noreferrer" className="shrink-0">
@@ -49,7 +49,7 @@ export function Header() {
             if ('children' in item) {
               return (
                 <div key={item.label} className="relative group">
-                  <button className="flex items-center gap-1 font-heading text-sm font-normal text-white/80 hover:text-white transition-colors">
+                  <button className="flex items-center gap-1 font-heading text-sm font-normal text-white/95 hover:text-white transition-colors">
                     {item.label}
                     <ChevronDown size={13} className="opacity-60 group-hover:rotate-180 transition-transform duration-200" />
                   </button>
@@ -78,7 +78,7 @@ export function Header() {
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-heading text-sm font-normal text-white/80 hover:text-white transition-colors"
+                className="font-heading text-sm font-normal text-white/95 hover:text-white transition-colors"
               >
                 {item.label}
               </a>

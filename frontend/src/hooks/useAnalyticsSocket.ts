@@ -29,6 +29,9 @@ export function useAnalyticsSocket(boardIds: string[]) {
     socket.on('connect', () => {
       setIsConnected(true);
       boardIds.forEach((id) => socket.emit('watch-board', { boardId: id }));
+      // Refresh analytics on (re)connect to catch any events missed during the gap
+      qc.invalidateQueries({ queryKey: ['analytics'] });
+      qc.invalidateQueries({ queryKey: ['analytics-activity'] });
     });
 
     socket.on('disconnect', () => setIsConnected(false));

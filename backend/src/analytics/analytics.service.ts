@@ -32,7 +32,7 @@ export class AnalyticsService {
 
     const [
       cardsByStatus, cardsByAssignee, overdueCards, completionsOverTime,
-      curTotal, curDone,
+      curTotal, curDone, curReopened,
       prevTotal, prevDone,
     ] = await Promise.all([
       this.getCardsByStatus(boardId, startDate, endDate),
@@ -41,7 +41,8 @@ export class AnalyticsService {
       this.getCompletionsOverTime(boardId, startDate, endDate),
       this.countCards(boardId, startDate, endDate),
       this.countDoneCards(boardId, startDate, endDate),
-      prevStart ? this.countCards(boardId, prevStart, prevEnd)    : Promise.resolve(0),
+      this.countReopenedCards(boardId, startDate, endDate),
+      prevStart ? this.countCards(boardId, prevStart, prevEnd)     : Promise.resolve(0),
       prevStart ? this.countDoneCards(boardId, prevStart, prevEnd) : Promise.resolve(0),
     ]);
 
@@ -51,7 +52,7 @@ export class AnalyticsService {
       overdueCards,
       completionsOverTime,
       kpis: {
-        current:  { totalCards: curTotal, doneCount: curDone, overdueCount: overdueCards.length },
+        current:  { totalCards: curTotal, doneCount: curDone, overdueCount: overdueCards.length, reopenedCount: curReopened },
         previous: prevStart ? { totalCards: prevTotal, doneCount: prevDone } : null,
       },
     };
@@ -67,13 +68,27 @@ export class AnalyticsService {
   }
 
   private async countDoneCards(boardId?: string, startDate?: string, endDate?: string): Promise<number> {
-    const qb = this.cardRepo
-      .createQueryBuilder('c')
-      .select('COUNT(c.id)::int', 'count')
-      .where('c.status = :done', { done: CardStatus.DONE });
+    const qb = this.historyRepo
+      .createQueryBuilder('h')
+      .innerJoin('h.card', 'c')
+      .select('COUNT(DISTINCT c.id)::int', 'count')
+      .where('h.to_status = :done', { done: CardStatus.DONE });
     if (boardId)   qb.andWhere('c.board_id = :boardId', { boardId });
-    if (startDate) qb.andWhere('c.updated_at >= :startDate', { startDate });
-    if (endDate)   qb.andWhere('c.updated_at <= :endDate', { endDate: endDate + ' 23:59:59' });
+    if (startDate) qb.andWhere('h.created_at >= :startDate', { startDate });
+    if (endDate)   qb.andWhere('h.created_at <= :endDate', { endDate: endDate + ' 23:59:59' });
+    const r = await qb.getRawOne<{ count: number }>();
+    return Number(r?.count ?? 0);
+  }
+
+  private async countReopenedCards(boardId?: string, startDate?: string, endDate?: string): Promise<number> {
+    const qb = this.historyRepo
+      .createQueryBuilder('h')
+      .innerJoin('h.card', 'c')
+      .select('COUNT(DISTINCT c.id)::int', 'count')
+      .where('h.from_status = :done', { done: CardStatus.DONE });
+    if (boardId)   qb.andWhere('c.board_id = :boardId', { boardId });
+    if (startDate) qb.andWhere('h.created_at >= :startDate', { startDate });
+    if (endDate)   qb.andWhere('h.created_at <= :endDate', { endDate: endDate + ' 23:59:59' });
     const r = await qb.getRawOne<{ count: number }>();
     return Number(r?.count ?? 0);
   }
@@ -169,19 +184,50 @@ export class AnalyticsService {
     return !!member;
   }
 
-  private async getCompletionsOverTime(boardId?: string, startDate?: string, endDate?: string) {
-    const qb = this.cardRepo
-      .createQueryBuilder('c')
-      .select("TO_CHAR(c.updated_at, 'YYYY-MM-DD')", 'date')
-      .addSelect('COUNT(c.id)::int', 'count')
-      .where('c.status = :done', { done: CardStatus.DONE })
-      .groupBy("TO_CHAR(c.updated_at, 'YYYY-MM-DD')")
-      .orderBy("TO_CHAR(c.updated_at, 'YYYY-MM-DD')", 'ASC');
+  private async getCompletionsOverTime(
+    boardId?: string,
+    startDate?: string,
+    endDate?: string,
+  ): Promise<{ date: string; count: number; reopened: number }[]> {
+    const completionQb = this.historyRepo
+      .createQueryBuilder('h')
+      .innerJoin('h.card', 'c')
+      .select("TO_CHAR(h.created_at, 'YYYY-MM-DD')", 'date')
+      .addSelect('COUNT(h.id)::int', 'count')
+      .where('h.to_status = :done', { done: CardStatus.DONE })
+      .groupBy("TO_CHAR(h.created_at, 'YYYY-MM-DD')")
+      .orderBy("TO_CHAR(h.created_at, 'YYYY-MM-DD')", 'ASC');
+    if (boardId)   completionQb.andWhere('c.board_id = :boardId', { boardId });
+    if (startDate) completionQb.andWhere('h.created_at >= :startDate', { startDate });
+    if (endDate)   completionQb.andWhere('h.created_at <= :endDate', { endDate: endDate + ' 23:59:59' });
 
-    if (boardId) qb.andWhere('c.board_id = :boardId', { boardId });
-    if (startDate) qb.andWhere('c.updated_at >= :startDate', { startDate });
-    if (endDate) qb.andWhere('c.updated_at <= :endDate', { endDate: endDate + ' 23:59:59' });
+    const reopenedQb = this.historyRepo
+      .createQueryBuilder('h')
+      .innerJoin('h.card', 'c')
+      .select("TO_CHAR(h.created_at, 'YYYY-MM-DD')", 'date')
+      .addSelect('COUNT(h.id)::int', 'count')
+      .where('h.from_status = :done', { done: CardStatus.DONE })
+      .groupBy("TO_CHAR(h.created_at, 'YYYY-MM-DD')")
+      .orderBy("TO_CHAR(h.created_at, 'YYYY-MM-DD')", 'ASC');
+    if (boardId)   reopenedQb.andWhere('c.board_id = :boardId', { boardId });
+    if (startDate) reopenedQb.andWhere('h.created_at >= :startDate', { startDate });
+    if (endDate)   reopenedQb.andWhere('h.created_at <= :endDate', { endDate: endDate + ' 23:59:59' });
 
-    return qb.getRawMany<{ date: string; count: number }>();
+    const [completions, reopened] = await Promise.all([
+      completionQb.getRawMany<{ date: string; count: number }>(),
+      reopenedQb.getRawMany<{ date: string; count: number }>(),
+    ]);
+
+    const completionMap = new Map(completions.map((r) => [r.date, Number(r.count)]));
+    const reopenedMap   = new Map(reopened.map((r) => [r.date, Number(r.count)]));
+    const allDates      = new Set([...completionMap.keys(), ...reopenedMap.keys()]);
+
+    return Array.from(allDates)
+      .sort()
+      .map((date) => ({
+        date,
+        count:    completionMap.get(date) ?? 0,
+        reopened: reopenedMap.get(date)   ?? 0,
+      }));
   }
 }

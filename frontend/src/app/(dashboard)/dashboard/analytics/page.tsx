@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   ResponsiveContainer,
   BarChart, Bar,
@@ -106,10 +106,10 @@ function KpiCard({ label, value, icon, trend, trendInverted = false, pulse }: Kp
 }
 
 /* ─── Completion Ring ───────────────────────────────────────────────────── */
-function CompletionRingCard({ doneCount, totalCards, trend, pulse }: {
-  doneCount: number; totalCards: number; trend: number | null; pulse?: boolean;
+function CompletionRingCard({ doneCount, totalCards, trend, pulse, reopenedCount = 0 }: {
+  doneCount: number; totalCards: number; trend: number | null; pulse?: boolean; reopenedCount?: number;
 }) {
-  const pct  = totalCards > 0 ? Math.round((doneCount / totalCards) * 100) : 0;
+  const pct  = totalCards > 0 ? Math.min(100, Math.round((doneCount / totalCards) * 100)) : 0;
   const r    = 20;
   const circ = 2 * Math.PI * r;
   const arc  = circ * (pct / 100);
@@ -123,20 +123,29 @@ function CompletionRingCard({ doneCount, totalCards, trend, pulse }: {
         <div className="p-2.5 bg-brand-accent-muted rounded-lg text-brand-accent">
           <TrendingUp size={18} />
         </div>
-        {trend !== null && trend !== undefined ? (
-          <span className={cn(
-            'flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full',
-            trend > 0 ? 'bg-brand-success-subtle text-brand-success-fg' : trend < 0 ? 'bg-brand-error-subtle text-brand-error-fg' : 'bg-brand-surface-elevated text-brand-text-muted',
-          )}>
-            {trend > 0 ? <TrendingUp size={11} /> : trend < 0 ? <TrendingDown size={11} /> : <Minus size={11} />}
-            {Math.abs(trend)}%
-          </span>
-        ) : null}
+        <div className="flex items-center gap-1.5">
+          {reopenedCount > 0 && (
+            <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-warning-subtle text-brand-warning-fg border border-brand-warning/30">
+              <RotateCcw size={9} />
+              {reopenedCount} reaberto{reopenedCount > 1 ? 's' : ''}
+            </span>
+          )}
+          {trend !== null && trend !== undefined ? (
+            <span className={cn(
+              'flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full',
+              trend > 0 ? 'bg-brand-success-subtle text-brand-success-fg' : trend < 0 ? 'bg-brand-error-subtle text-brand-error-fg' : 'bg-brand-surface-elevated text-brand-text-muted',
+            )}>
+              {trend > 0 ? <TrendingUp size={11} /> : trend < 0 ? <TrendingDown size={11} /> : <Minus size={11} />}
+              {Math.abs(trend)}%
+            </span>
+          ) : null}
+        </div>
       </div>
       <div className="flex items-end justify-between gap-2">
         <div>
           <p className="text-3xl font-bold text-brand-text-primary tracking-tight">{doneCount}</p>
-          <p className="text-xs text-brand-text-secondary mt-1">Cards concluídos</p>
+          <p className="text-xs text-brand-text-secondary mt-0.5">Cards concluídos</p>
+          <p className="text-[11px] text-brand-text-muted mt-0.5">cards únicos concluídos no período</p>
         </div>
         <div className="relative shrink-0 w-14 h-14">
           <svg viewBox="0 0 52 52" className="w-full h-full" style={{ transform: 'rotate(-90deg)' }}>
@@ -159,11 +168,50 @@ function CompletionRingCard({ doneCount, totalCards, trend, pulse }: {
 }
 
 /* ─── Chart Shell ───────────────────────────────────────────────────────── */
-function ChartShell({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+function ChartShell({ title, subtitle, children, className }: { title: string; subtitle?: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={cn('bg-brand-surface rounded-xl border border-brand-border-subtle p-5 shadow-brand-card', className)}>
-      <h3 className="text-sm font-semibold text-brand-text-secondary mb-4">{title}</h3>
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-brand-text-secondary">{title}</h3>
+        {subtitle && <p className="text-xs text-brand-text-muted mt-0.5">{subtitle}</p>}
+      </div>
       {children}
+    </div>
+  );
+}
+
+/* ─── Throughput Tooltip ─────────────────────────────────────────────────── */
+function ThroughputTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  const count    = payload.find((p: any) => p.dataKey === 'count')?.value    ?? 0;
+  const reopened = payload.find((p: any) => p.dataKey === 'reopened')?.value ?? 0;
+  const net = count - reopened;
+  let dateLabel = String(label);
+  try { dateLabel = format(parseISO(String(label)), 'dd/MM/yyyy', { locale: ptBR }); } catch { /* keep raw */ }
+  return (
+    <div style={{ borderRadius: 8, border: '1px solid #2A3040', backgroundColor: '#1E222D', color: '#E8ECF4', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', padding: '10px 14px', fontSize: 12 }}>
+      <p style={{ marginBottom: 6, fontWeight: 600, color: '#8B95A8' }}>{dateLabel}</p>
+      <p style={{ margin: '2px 0', color: SLATE.success }}>Concluídos: <strong>{count}</strong></p>
+      {reopened > 0 && (
+        <p style={{ margin: '2px 0', color: SLATE.warning }}>Reabertos depois: <strong>{reopened}</strong></p>
+      )}
+      <p style={{ margin: '6px 0 0', borderTop: '1px solid #2A3040', paddingTop: 6, color: net >= 0 ? SLATE.success : SLATE.warning }}>
+        Líquido na coluna: <strong>{net}</strong>
+      </p>
+    </div>
+  );
+}
+
+/* ─── Throughput Context Panel ───────────────────────────────────────────── */
+function ThroughputContextPanel({ reopenedCount }: { reopenedCount: number }) {
+  if (reopenedCount === 0) return null;
+  return (
+    <div className="flex items-start gap-3 px-4 py-3 bg-brand-warning-subtle border border-brand-warning/30 rounded-lg">
+      <RotateCcw size={14} className="text-brand-warning shrink-0 mt-0.5" />
+      <p className="text-xs text-brand-warning-fg leading-relaxed">
+        <strong>{reopenedCount} card{reopenedCount > 1 ? 's' : ''}</strong> {reopenedCount > 1 ? 'foram reabertos' : 'foi reaberto'} — movido{reopenedCount > 1 ? 's' : ''} para fora da coluna "Concluído" após ter sido concluído no período.
+        O gráfico acima conta <strong>eventos de entrada</strong> na coluna; o saldo real pode ser menor.
+      </p>
     </div>
   );
 }
@@ -350,14 +398,18 @@ export default function AnalyticsPage() {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['analytics', boardId, startDate, endDate],
     queryFn:  () => analyticsApi.getSummary({ boardId: boardId || undefined, startDate, endDate }),
-    placeholderData: keepPreviousData,
+    // Only carry previous data when the board hasn't changed; switching boards should
+    // show a loading state so stale data from the wrong board is never displayed.
+    placeholderData: (prev, prevQuery) =>
+      prevQuery?.queryKey?.[1] === boardId ? prev : undefined,
   });
 
   const { data: activityEvents = [], isLoading: activityLoading, isFetching: activityFetching } = useQuery({
     queryKey: ['analytics-activity', boardId, startDate, endDate],
     queryFn:  () => analyticsApi.getActivity({ boardId: boardId || undefined, startDate, endDate, limit: 100 }),
     enabled:  tab === 'activity',
-    placeholderData: keepPreviousData,
+    placeholderData: (prev, prevQuery) =>
+      prevQuery?.queryKey?.[1] === boardId ? prev : undefined,
   });
 
   // Tempo real — watch sem presença
@@ -553,6 +605,7 @@ export default function AnalyticsPage() {
               totalCards={cur?.totalCards ?? 0}
               trend={prev ? calcTrend(cur!.doneCount, prev.doneCount) : null}
               pulse={pulse}
+              reopenedCount={cur?.reopenedCount ?? 0}
             />
             <KpiCard
               label="Cards em atraso"
@@ -564,37 +617,64 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Throughput — Area Chart */}
-          <ChartShell title="Throughput — Conclusões ao Longo do Tempo">
+          <ChartShell
+            title="Throughput — Conclusões ao Longo do Tempo"
+            subtitle="Cada ponto representa eventos de entrada na coluna Concluído, não o estado atual"
+          >
             {(data?.completionsOverTime ?? []).length === 0 ? <EmptyState /> : (
-              <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={data?.completionsOverTime} margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
-                  <defs>
-                    <linearGradient id="areaGreen" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor={SLATE.success} stopOpacity={0.28} />
-                      <stop offset="95%" stopColor={SLATE.success} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1E222D" />
-                  <XAxis
-                    dataKey="date" tick={TICK_STYLE}
-                    tickFormatter={(d) => { try { return format(parseISO(d), 'dd/MM', { locale: ptBR }); } catch { return d; } }}
-                  />
-                  <YAxis allowDecimals={false} tick={TICK_STYLE} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: 8, border: '1px solid #2A3040', backgroundColor: '#1E222D', color: '#E8ECF4', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}
-                    labelFormatter={(d) => { try { return format(parseISO(String(d)), 'dd/MM/yyyy', { locale: ptBR }); } catch { return d; } }}
-                    formatter={(val) => [`${val} cards`, 'Concluídos']}
-                  />
-                  <Area
-                    type="monotone" dataKey="count"
-                    stroke={SLATE.success} strokeWidth={2.5}
-                    fill="url(#areaGreen)"
-                    dot={{ r: 3, fill: SLATE.success, strokeWidth: 0 }}
-                    activeDot={{ r: 5, fill: SLATE.success }}
-                    animationDuration={600}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <>
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={data?.completionsOverTime} margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
+                    <defs>
+                      <linearGradient id="areaGreen" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor={SLATE.success} stopOpacity={0.28} />
+                        <stop offset="95%" stopColor={SLATE.success} stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="areaAmber" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor={SLATE.warning} stopOpacity={0.22} />
+                        <stop offset="95%" stopColor={SLATE.warning} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1E222D" />
+                    <XAxis
+                      dataKey="date" tick={TICK_STYLE}
+                      tickFormatter={(d) => { try { return format(parseISO(d), 'dd/MM', { locale: ptBR }); } catch { return d; } }}
+                    />
+                    <YAxis allowDecimals={false} tick={TICK_STYLE} />
+                    <Tooltip content={<ThroughputTooltip />} />
+                    <Legend
+                      iconType="circle"
+                      iconSize={8}
+                      wrapperStyle={{ paddingTop: 8, fontSize: 11 }}
+                      formatter={(value) => (
+                        <span style={{ color: '#8B95A8' }}>
+                          {value === 'count' ? 'Concluído' : 'Reaberto'}
+                        </span>
+                      )}
+                    />
+                    <Area
+                      type="monotone" dataKey="count"
+                      name="count"
+                      stroke={SLATE.success} strokeWidth={2.5}
+                      fill="url(#areaGreen)"
+                      dot={{ r: 3, fill: SLATE.success, strokeWidth: 0 }}
+                      activeDot={{ r: 5, fill: SLATE.success }}
+                      animationDuration={600}
+                    />
+                    <Area
+                      type="monotone" dataKey="reopened"
+                      name="reopened"
+                      stroke={SLATE.warning} strokeWidth={1.5}
+                      fill="none"
+                      strokeDasharray="5 4"
+                      dot={false}
+                      activeDot={{ r: 4, fill: SLATE.warning }}
+                      animationDuration={600}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+                <ThroughputContextPanel reopenedCount={cur?.reopenedCount ?? 0} />
+              </>
             )}
           </ChartShell>
 

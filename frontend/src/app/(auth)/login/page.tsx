@@ -40,11 +40,11 @@ export default function LoginPage() {
         <div className="relative z-10 w-full max-w-[468px] px-4 mx-auto">
           <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-10">
 
-            <div className="mb-8 text-center">
+            <div className="mb-8 pb-8 text-center border-b border-white/15">
               <h1 className="font-heading text-2xl font-bold text-white drop-shadow">
                 Task<span className="text-brand-accent">Flow</span>
               </h1>
-              <p className="font-sans text-white/70 mt-1 text-sm">
+              <p className="font-sans text-white/90 mt-1 text-sm">
                 Entre na sua conta
               </p>
             </div>
